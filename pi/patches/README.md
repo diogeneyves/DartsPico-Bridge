@@ -29,7 +29,7 @@ tools/apply_patches.sh ~/RaspyDarts-work
 
 - `--check` applique les patchs dans un clone temporaire, placé sur `BASE`. Il est autorisé sur la copie de référence (`RASPYDARTS_ORIG`, défaut `~/RaspyDarts-ref465`, extraite sur `8fa61ff`), qui n'est pas modifiée ; la copie doit seulement contenir `BASE`.
 - Tests : `python3 -m unittest discover -s tests` lit la même copie de référence ; ses fichiers Python doivent être ceux de `BASE`.
-- Sans `--check`, le script lance `git am` de chaque patch, puis fait un commit des fichiers nouveaux : `include/cpico.py`, `include/hwbus.py`, `include/pico_proto.py` et `pico_shims/rpi_ws281x.py`.
+- Sans `--check`, le script lance `git am` de chaque patch, puis fait un commit des fichiers nouveaux : `include/cpico.py`, `include/hwbus.py`, `include/pico_proto.py` et `pico_shims/rpi_ws281x.py`, avec le bandeau de `FORK_README_BANNER.md` ajouté en tête du `README.md` de l'amont, dont le texte reste intact en dessous (spécification, complément 83). `FORK_README_BANNER.md` n'est pas un patch : il est hors de `series`.
 - **Refus, sans rien modifier** :
   - `HEAD` différent de `BASE` ; avec `--check`, `BASE` absent de la copie (code 2) ;
   - copie qui contient des modifications (code 3) ;

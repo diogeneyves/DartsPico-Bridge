@@ -14,8 +14,8 @@
 # copie), copie avec des modifications,
 # application sur la copie de référence (RASPYDARTS_ORIG, défaut ~/RaspyDarts-ref465), ou sur
 # ~/RaspyDarts-orig (4.6.3), ~/RaspyDarts-ref (4.6.4) et ~/RaspyDarts-ref465, gardées intactes.
-# Sinon : git am de chaque patch de series, dans l'ordre, puis copie des fichiers
-# nouveaux (cpico.py, hwbus.py, pico_proto.py, rpi_ws281x.py) dans un commit à part.
+# Sinon : git am de chaque patch de series, dans l'ordre, puis un commit à part : fichiers nouveaux
+# (cpico.py, hwbus.py, pico_proto.py, rpi_ws281x.py) et bandeau en tête du README.md (complément 83).
 #
 # Codes de sortie : 0 succès, 1 usage, 2 HEAD différent de BASE (--check : BASE absent), 3 copie modifiée,
 # 4 copie de référence refusée, 5 patch qui ne s'applique pas.
@@ -112,7 +112,14 @@ cp "$ROOT/pi/hwd/hwbus.py" "$TARGET/include/hwbus.py"
 cp "$ROOT/shared/pico_proto.py" "$TARGET/include/pico_proto.py"
 mkdir -p "$TARGET/pico_shims"
 cp "$ROOT/pi/raspydarts_layer/shims/rpi_ws281x.py" "$TARGET/pico_shims/rpi_ws281x.py"
-git -C "$TARGET" add include/cpico.py include/hwbus.py include/pico_proto.py pico_shims/rpi_ws281x.py
+# Bandeau du README du fork (complément 83), lu dans pi/patches/ du dépôt (pas dans --patches) :
+# ajouté en tête, le texte de l'amont reste intact en dessous.
+BANNER="$ROOT/pi/patches/FORK_README_BANNER.md"
+[ -f "$BANNER" ] && [ -f "$TARGET/README.md" ] || {
+    echo "Bandeau $BANNER ou README.md de $TARGET absent." >&2; exit 5; }
+cat "$BANNER" "$TARGET/README.md" > "$TARGET/README.md.tmp"
+mv "$TARGET/README.md.tmp" "$TARGET/README.md"
+git -C "$TARGET" add include/cpico.py include/hwbus.py include/pico_proto.py pico_shims/rpi_ws281x.py README.md
 git -C "$TARGET" -c user.name=RaspyDarts-Pico -c user.email=noreply@invalid \
-    commit --quiet -m "RaspyDarts-Pico: add new files (cpico, hwbus, pico_proto, rpi_ws281x)"
+    commit --quiet -m "RaspyDarts-Pico: add new files (cpico, hwbus, pico_proto, rpi_ws281x) and README banner"
 echo "OK : $n patch(s) appliqué(s) et fichiers nouveaux copiés dans $TARGET."

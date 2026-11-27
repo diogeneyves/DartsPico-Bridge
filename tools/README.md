@@ -86,7 +86,7 @@ python3 tools/make_test_gifs.py /tmp/gifs-dmd
 `build_fork.sh` (spécification, compléments 78 à 80 ; `docs/UPSTREAM.md`) : construit la branche
 `main` du fork dans un dossier inexistant ou vide, hors du dépôt : clone de l'amont (`--upstream`,
 défaut `https://github.com/rmdelcelier/RaspyDarts`), `BASE` en tête détachée, puis
-`apply_patches.sh` complet (10 patchs et 11e commit des fichiers nouveaux). Ne pousse pas : affiche
+`apply_patches.sh` complet (10 patchs et 11e commit des fichiers nouveaux et du bandeau du `README.md`). Ne pousse pas : affiche
 la commande de push, que l'auteur lance lui-même. `check_fork.sh FORK RÉFÉRENCE` contrôle qu'un fork
 est `BASE` + 11 commits aux arbres, messages et auteurs égaux à ceux d'un fork fraîchement construit
 (pas de SHA reproductibles).

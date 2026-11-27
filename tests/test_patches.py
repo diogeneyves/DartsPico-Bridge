@@ -189,7 +189,7 @@ class Script(unittest.TestCase):
     def test_apply_then_refuse_second_time(self):
         out = run_script(self.copy)
         self.assertEqual(out.returncode, 0, out.stderr)
-        # Dix patchs (0001 à 0010), puis le commit des fichiers nouveaux.
+        # Dix patchs (0001 à 0010), puis le commit des fichiers nouveaux et du bandeau du README.
         self.assertEqual(git("rev-parse", "HEAD~11", cwd=self.copy).strip(), _orig.BASE_COMMIT)
         for rel in ("include/cpico.py", "include/hwbus.py", "include/pico_proto.py",
                     "pico_shims/rpi_ws281x.py"):

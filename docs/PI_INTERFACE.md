@@ -261,7 +261,7 @@ Un module `rpi_ws281x.py` de remplacement (mêmes noms : `PixelStrip`, `Color`, 
   - un patch par sujet, numérotés (`0001-craspberry-mode-pico.patch`, `0002-serveurs-led-sans-sudo.patch`…), produits par `git format-patch` depuis `~/RaspyDarts-work` ;
   - un fichier `pi/patches/series` donne l'ordre, et `pi/patches/BASE` contient le commit de référence.
 - **Fichiers nouveaux** (`include/cpico.py`, `rpi_ws281x.py` de remplacement) : ils vivent dans ce dépôt (`pi/raspydarts_layer/`), testés par notre CI, avec un en-tête GPL v3. Les patchs ne contiennent que les modifications des fichiers existants. Le script d'installation copie les nouveaux fichiers.
-- **Application** : un script `tools/apply_patches.sh <dossier RaspyDarts>`. Il vérifie que `HEAD` vaut `BASE`, applique `git am` dans l'ordre de `series`, puis copie les fichiers nouveaux. Il n'agit que sur le dossier qu'on lui donne, jamais sur `~/RaspyDarts-orig`.
+- **Application** : un script `tools/apply_patches.sh <dossier RaspyDarts>`. Il vérifie que `HEAD` vaut `BASE`, applique `git am` dans l'ordre de `series`, puis copie les fichiers nouveaux et ajoute le bandeau de `pi/patches/FORK_README_BANNER.md` en tête du `README.md` (complément 83), dans un même commit. Il n'agit que sur le dossier qu'on lui donne, jamais sur `~/RaspyDarts-orig`.
 - **Changement de version de RaspyDarts** : décision de l'auteur. Il faut alors mettre à jour `BASE` et `UPSTREAM.md`, recommencer la cartographie des lignes citées ici, puis régénérer les patchs.
 - **Licence** : tout code dérivé de RaspyDarts garde la GPL v3, avec les en-têtes.
 

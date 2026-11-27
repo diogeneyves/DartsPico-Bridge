@@ -22,7 +22,9 @@ BUILD = os.path.join(ROOT, "tools", "build_fork.sh")
 CHECK = os.path.join(ROOT, "tools", "check_fork.sh")
 PATCHES = os.path.join(ROOT, "pi", "patches")
 IDENTITY = "Gohy Yves <6154641+diogeneyves@users.noreply.github.com>"
-ELEVENTH = "RaspyDarts-Pico: add new files (cpico, hwbus, pico_proto, rpi_ws281x)"
+ELEVENTH = "RaspyDarts-Pico: add new files (cpico, hwbus, pico_proto, rpi_ws281x) and README banner"
+# Bandeau du README du fork (complément 83), ajouté en tête du README.md de l'amont.
+BANNER = os.path.join(PATCHES, "FORK_README_BANNER.md")
 NEW_FILES = ("include/cpico.py", "include/hwbus.py", "include/pico_proto.py",
              "pico_shims/rpi_ws281x.py")
 # Identité imposée par apply_patches.sh (lignes 95-96 et 116-117), qui doit céder devant
@@ -61,6 +63,29 @@ def patch_headers():
         date = re.search(r"^Date: (.*)$", head, re.M).group(1).strip()
         result.append((author, date))
     return result
+
+
+class Banner(unittest.TestCase):
+    """Modèle du bandeau (complément 83), sans copie de RaspyDarts."""
+
+    def setUp(self):
+        with open(BANNER, "rb") as f:
+            self.raw = f.read()
+        self.text = self.raw.decode("utf-8")
+
+    def test_names_base_commit(self):
+        # Un changement de pi/patches/BASE oblige à revoir le bandeau.
+        self.assertIn("`%s`" % _orig.BASE_COMMIT[:7], self.text)
+
+    def test_content_french_then_english(self):
+        for want in ("https://github.com/rmdelcelier/RaspyDarts",
+                     "https://github.com/diogeneyves/RaspyDarts-Pico", "GPL v3", "(LICENSE)"):
+            self.assertEqual(self.text.count(want), 2, want)
+        self.assertLess(self.text.index("modifiée en 2026"), self.text.index("modified in 2026"))
+
+    def test_lf_and_separator(self):
+        self.assertNotIn(b"\r", self.raw)
+        self.assertTrue(self.raw.endswith(b"\n\n---\n\n"), self.raw[-20:])
 
 
 class Usage(unittest.TestCase):
@@ -155,6 +180,20 @@ class Build(unittest.TestCase):
         for rel in NEW_FILES:
             self.assertTrue(os.path.isfile(os.path.join(self.fork, rel)), rel)
         self.assertEqual(self.commits(self.fork, "%s")[-1], ELEVENTH)
+
+    def test_readme_banner_in_eleventh_commit(self):
+        def show(rev):
+            return subprocess.run(["git", "show", rev + ":README.md"], cwd=self.fork,
+                                  capture_output=True, check=True).stdout
+        with open(BANNER, "rb") as f:
+            banner = f.read()
+        upstream = show(_orig.BASE_COMMIT)
+        # Bandeau identique au modèle, texte de l'amont intact en dessous.
+        self.assertEqual(show("HEAD"), banner + upstream)
+        # README.md n'est touché que par le 11e commit, avec les 4 fichiers nouveaux.
+        self.assertEqual(show("HEAD~1"), upstream)
+        changed = git("diff-tree", "--no-commit-id", "--name-only", "-r", "HEAD", cwd=self.fork)
+        self.assertEqual(sorted(changed.split()), sorted(NEW_FILES + ("README.md",)))
 
     def test_identity_overrides_apply_patches(self):
         # GIT_AUTHOR_* et GIT_COMMITTER_* priment sur les -c user.* de apply_patches.sh.

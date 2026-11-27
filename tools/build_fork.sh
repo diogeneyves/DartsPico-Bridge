@@ -2,8 +2,8 @@
 # Copyright (C) 2026 Gohy Yves
 # Licence : GPL v3 (voir LICENSE à la racine du dépôt).
 #
-# Construit la branche main du fork RaspyDarts-Pico-game (spécification, compléments 78 à 80) :
-# BASE (pi/patches/BASE) + patchs de pi/patches/series + 11e commit des fichiers nouveaux.
+# Construit la branche main du fork RaspyDarts-Pico-game (spécification, compléments 78 à 80 et 83) :
+# BASE (pi/patches/BASE) + patchs de pi/patches/series + 11e commit (fichiers nouveaux, bandeau du README).
 #
 # Usage : tools/build_fork.sh [--upstream URL] <dossier>
 #
