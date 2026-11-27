@@ -1,8 +1,8 @@
 # Copyright (C) 2026 Gohy Yves
 # Licence : GPL v3 (voir LICENSE à la racine du dépôt).
 """Cohérence de docs/INSTALLATION.md et docs/PROCEDURE.md (complément 77) : marqueurs sous une
-seule forme, aucun numéro de série réel, liens relatifs vers des fichiers présents, options de
-tools/install_services.sh citées par INSTALLATION.md présentes dans le script.
+seule forme, aucun numéro de série réel, aucun chemin personnel, liens relatifs vers des fichiers
+présents, options de tools/install_services.sh citées par INSTALLATION.md présentes dans le script.
 """
 
 import re
@@ -19,6 +19,8 @@ INSTALL = ROOT / "tools" / "install_services.sh"
 
 SERIAL_MARKERS = {"<SERIE_PICO>", "<SERIE_I75W>"}
 USER_MARKER = "<utilisateur>"
+# Chemins de l'installation de l'auteur : dossier personnel du Pi, copie d'essai du jeu, Mac.
+PERSONAL_PATHS = ("/home/pi", "pico-test", "/Users/")
 # Suite isolée d'exactement 16 chiffres hexadécimaux : un numéro de série de carte. Une empreinte
 # SHA-256 ou un SHA de commit complet (plus long) n'est pas visé, ni un SHA court (plus court).
 SERIAL_RE = re.compile(r"(?<![0-9A-Fa-f])[0-9A-Fa-f]{16}(?![0-9A-Fa-f])")
@@ -58,6 +60,13 @@ class InstallationDocTest(unittest.TestCase):
         self.assertEqual(serial_hits("8fa61ffe9c1c264f49c3300ea61a37100b84b10c"), [])
         self.assertEqual(serial_hits("ab" * 32), [])
         self.assertEqual(serial_hits("commit 8fa61ff"), [])
+
+    def test_no_personal_path(self):
+        # Aucun chemin de l'installation de l'auteur (complément 77) : les marqueurs s'en chargent.
+        for path in (INSTALLATION, PROCEDURE):
+            text = read(path)
+            with self.subTest(doc=path.name):
+                self.assertEqual([p for p in PERSONAL_PATHS if p in text], [])
 
     def test_relative_links_exist(self):
         for path in (INSTALLATION, PROCEDURE):

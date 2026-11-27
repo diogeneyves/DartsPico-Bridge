@@ -164,8 +164,86 @@ Attendu : `OK : 10 patch(s) appliqué(s) et fichiers nouveaux copiés dans …`.
   dans une partie, aucun bouton ni case de suppression ;
 - `POST /delete-many` sans en-tête `Origin` : 403.
 
-*Non vérifié* : le lancement par le jeu (`systemd-run --user`), le cas avec mot de passe, l'accès
-depuis un téléphone.
+Essai du même jour, galerie **lancée par le jeu** (faux Pico, puis `hwd`, puis le jeu), contrôlée
+par tunnel SSH (`curl`, puis navigateur de l'auteur) :
+
+- **Lancement par le jeu** : si rien n'écoute sur le port 8080, le jeu démarre l'unité
+  `raspydarts-gallery` par `systemd-run --user` (`ensure_running` de `include/cgallery.py`) ; elle
+  écoute après quelques secondes et reste lancée quand le jeu s'arrête. Une galerie déjà lancée est
+  gardée : pour un nouvel essai, l'arrêter d'abord (`systemctl --user stop raspydarts-gallery`).
+- **Copie d'essai qui ne change que HOME** : `systemd-run --user` ne transmet pas l'environnement du
+  jeu ; l'unité reçoit le HOME du gestionnaire systemd de `<utilisateur>` et la galerie lit la
+  configuration de ce HOME (`~/.raspydarts/raspydarts.cfg`), pas celle de l'essai (mot de passe,
+  dossiers des médias). Contournement d'essai, dans le shell où l'environnement de l'essai est
+  chargé (HOME de l'essai), juste avant le jeu :
+
+  ```bash
+  systemctl --user set-environment HOME="$HOME"
+  ```
+
+  puis, dès que la galerie écoute sur le port 8080 :
+
+  ```bash
+  systemctl --user unset-environment HOME
+  ```
+
+  Contrôle avant et après par `systemctl --user show-environment`. Toute unité utilisateur démarrée
+  pendant cette fenêtre reçoit ce HOME : la garder courte. Installation normale (HOME du compte) :
+  sans objet.
+- **Sans mot de passe** : page d'accueil en 200, bandeau « lecture seule », aucun bouton ni case de
+  suppression ; tout `POST` de suppression est refusé (403), avec ou sans `Origin` correct ; un
+  `POST` sans `Origin` correct est refusé (403), `/login` compris. Les deux refus (lecture seule,
+  contrôle d'origine) renvoient **la même page** ; on les distingue par `POST /login` avec un
+  `Origin` correct, qui répond 200 (« Mot de passe incorrect ») : le contrôle d'origine est passé.
+- **Avec mot de passe** : `GET` sans cookie : page de connexion ; `POST` de suppression avec
+  `Origin` correct mais sans cookie : **page de connexion (200), pas 403**, rien n'est supprimé ;
+  sans `Origin` : 403 ; `/login` avec un mauvais mot de passe : « Mot de passe incorrect », aucun
+  cookie. Après connexion dans le navigateur : cases et boutons de suppression visibles (aucun
+  utilisé).
+- **Mot de passe réglé à distance**, sans l'écran Galerie de la borne. Jeu arrêté, par précaution
+  déduite du code (le jeu réécrit sa configuration, `write_file`, à chaque changement de réglage) et
+  non observée à l'essai. Sauvegarde, puis saisie masquée (`getpass`) ; seul le haché de
+  `cgallery.hash_password` est écrit, et seulement si la ligne `password:` de `[Gallery]` est
+  remplacée exactement une fois ; le haché n'est jamais affiché. La commande n'importe que la
+  bibliothèque standard (`include/cgallery.py`, `include/cpaths.py`) : `python3` du système suffit.
+
+  ```bash
+  cp -p ~/.raspydarts/raspydarts.cfg ~/.raspydarts/raspydarts.cfg.avant-galerie
+  ```
+
+  ```bash
+  cd <COPIE-RASPYDARTS> && python3 -c '
+  import getpass, os, re, sys
+  from include import cgallery, cpaths
+  f = os.path.join(cpaths.user_dir(), cpaths.CONFIG_NAME)
+  t = open(f, encoding="utf-8").read()
+  p = getpass.getpass("Mot de passe de la galerie : ")
+  if not (p and p == getpass.getpass("Encore une fois : ")):
+      sys.exit("Arrêt : vide ou différent, rien n’est écrit")
+  t2, n = re.subn(r"(^\[Gallery\][^\[]*?^password:)[^\n]*", lambda m: m.group(1) + cgallery.hash_password(p), t, flags=re.M | re.S)
+  if n != 1:
+      sys.exit(f"Arrêt : {n} remplacement(s), rien n’est écrit")
+  open(f, "w", encoding="utf-8").write(t2)
+  print("OK : 1 remplacement dans", f)
+  '
+  ```
+
+  Contrôle, sans afficher le haché (attendu : `1`) :
+
+  ```bash
+  diff ~/.raspydarts/raspydarts.cfg.avant-galerie ~/.raspydarts/raspydarts.cfg | grep -c '^>'
+  ```
+
+  La galerie relit sa configuration à chaque requête : pas besoin de la relancer. Retour sans mot de
+  passe : recopier la sauvegarde sur `~/.raspydarts/raspydarts.cfg`.
+- **Arrêt du jeu** : le jeu ne s'arrête pas sur SIGTERM ; le signal devient `pygame.QUIT`, traduit
+  en « Échap » dans un menu, ou en bouton de jeu en partie (`include/craspberry.py:1139-1143` à
+  `8fa61ff`). Arrêt par `kill -9` du PID relevé par `pgrep -af '[r]aspydarts\.py'` (un PID gardé
+  dans un fichier peut être périmé) ; la galerie reste lancée.
+
+*Non vérifié* : l'accès depuis un téléphone (QR code), une vraie suppression avec mot de passe, le
+repli sans `systemd-run` (galerie lancée avec le jeu, journal `logs/gallery.log`), la remise à zéro
+des sorties par `hwd` après `kill -9` du jeu.
 
 ## 5. Mosquitto et dépendances Python
 
