@@ -323,7 +323,7 @@ def main(argv=None):
     import argparse
     import signal
 
-    parser = argparse.ArgumentParser(description="Démon matériel de RaspyDarts-Pico")
+    parser = argparse.ArgumentParser(description="Démon matériel de DartsPico-Bridge")
     parser.add_argument("--config", help="fichier TOML (défaut : valeurs par défaut)")
     parser.add_argument("--pico", help="port du Pico (remplace pico_device)")
     parser.add_argument("--dmd", help="port de l'Interstate 75 W (remplace dmd_device ; \"\" : désactivé)")

@@ -36,7 +36,7 @@ Codes de sortie de `i75w.sh` : 0 bon, 2 appareil introuvable ou ambigu, 3 contr�
 ls -l /dev/dmd
 ```
 
-Depuis le complément 62 de la spécification, la règle udev `73-raspydarts-pico.rules` crée `/dev/dmd` dès que la 75 W est branchée sous le firmware C++ : `ls -l /dev/dmd` peut donc répondre un lien vers `ttyACM…` (avant l'installation de la règle : `No such file or directory`). Dans tous les cas, **`hwd` doit être arrêté pendant tout le banc** :
+Depuis le complément 62 de la spécification, la règle udev `73-dartspico-bridge.rules` crée `/dev/dmd` dès que la 75 W est branchée sous le firmware C++ : `ls -l /dev/dmd` peut donc répondre un lien vers `ttyACM…` (avant l'installation de la règle : `No such file or directory`). Dans tous les cas, **`hwd` doit être arrêté pendant tout le banc** :
 
 ```bash
 pgrep -af hwd

@@ -23,7 +23,7 @@ service) : la copie doit se faire avec le même utilisateur que celui des unité
 - Les médias ne vont **jamais** dans le dépôt (`.gitignore` : `Medias*/`, `dmd-medias/`,
   `.config_backups/`).
 
-Toutes les commandes se lancent **sur le Mac**, depuis le dossier `RaspyDarts-Pico` du dépôt.
+Toutes les commandes se lancent **sur le Mac**, depuis la racine du dépôt `DartsPico-Bridge`.
 
 ### 1.1 Vérifier rsync sur le Pi
 
@@ -106,8 +106,8 @@ Installation de `hwd` et du service de rendu du DMD sur le Pi (spécification §
 50e complément). Les deux unités systemd, `raspydarts-hwd.service` et `raspydarts-dmd.service`,
 sont **installées sans être activées** : l'activation se fait à l'essai réel.
 
-- **Code** : `/opt/raspydarts-pico/` (structure du dépôt : `pi/hwd`, `pi/dmd`, `shared`), à root,
-  dossiers 755, fichiers 644 ; révision installée dans `/opt/raspydarts-pico/REVISION`. Rien n'y
+- **Code** : `/opt/dartspico-bridge/` (structure du dépôt : `pi/hwd`, `pi/dmd`, `shared`), à root,
+  dossiers 755, fichiers 644 ; révision installée dans `/opt/dartspico-bridge/REVISION`. Rien n'y
   est effacé.
 - **Configurations** : `/etc/raspydarts/hwd.toml` et `/etc/raspydarts/dmd.toml`, écrites depuis
   `pi/hwd/hwd.example.toml` et `pi/dmd/dmd.example.toml` **seulement si elles manquent** (jamais
@@ -122,9 +122,9 @@ sont **installées sans être activées** : l'activation se fait à l'essai rée
   `pi/systemd/fill_units.sh` (groupe : le groupe principal de l'utilisateur ; utilisateur inconnu ou
   marqueur restant : rien n'est installé). Pour `hwd`, l'utilisateur doit pouvoir ouvrir les ports
   série (`SupplementaryGroups=dialout`).
-- **Règle udev** : `pi/udev/73-raspydarts-pico.rules`, marqueurs `<SERIE_PICO>` et `<SERIE_I75W>`
+- **Règle udev** : `pi/udev/73-dartspico-bridge.rules`, marqueurs `<SERIE_PICO>` et `<SERIE_I75W>`
   remplis par `--pico-serial` et `--i75w-serial` (obligatoires, § 2.6), copiée dans
-  `/etc/udev/rules.d/73-raspydarts-pico.rules`, **écrasée à chaque `--apply`**, puis
+  `/etc/udev/rules.d/73-dartspico-bridge.rules`, **écrasée à chaque `--apply`**, puis
   `udevadm control --reload`. Elle crée `/dev/cible` (Pico 2) et `/dev/dmd` (Interstate 75 W) ;
   le `trigger` se fait à la main (§ 2.6).
 
@@ -133,8 +133,8 @@ sont **installées sans être activées** : l'activation se fait à l'essai rée
 > Avant de démarrer l'unité, arrêter le `hwd` lancé à la main (SIGTERM suffit pour `hwd`) ; avant de
 > le relancer, arrêter l'unité (`sudo systemctl stop raspydarts-hwd`).
 
-Toutes les commandes du § 2.1 et du § 2.2 se lancent **sur le Mac**, depuis le dossier
-`RaspyDarts-Pico` du dépôt.
+Toutes les commandes du § 2.1 et du § 2.2 se lancent **sur le Mac**, depuis la racine
+du dépôt `DartsPico-Bridge`.
 
 ### 2.1 Essai à blanc
 
@@ -159,7 +159,7 @@ tools/install_services.sh --user <utilisateur> --pico-serial <SERIE_PICO> --i75w
 ### 2.3 Contrôle sur le Pi
 
 ```bash
-ssh -4 pi@raspydarts.local 'cat /opt/raspydarts-pico/REVISION; systemctl is-enabled raspydarts-hwd raspydarts-dmd'
+ssh -4 pi@raspydarts.local 'cat /opt/dartspico-bridge/REVISION; systemctl is-enabled raspydarts-hwd raspydarts-dmd'
 ```
 
 Résultat attendu : la révision, puis `disabled` deux fois.

@@ -316,7 +316,7 @@ class NtpLogTest(unittest.TestCase):
 
 class EntryPointTest(unittest.TestCase):
     def test_shared_found_without_pythonpath(self):
-        # Comme sur le Pi (/opt/raspydarts-pico) : python3 -I, autre dossier courant ;
+        # Comme sur le Pi (/opt/dartspico-bridge) : python3 -I, autre dossier courant ;
         # dmd_proto vient de ../../shared (50e complément)
         script = ROOT / "pi" / "dmd" / "dmd_service.py"
         with tempfile.TemporaryDirectory() as cwd:
@@ -386,8 +386,10 @@ class UnitsTest(unittest.TestCase):
                 self.assertEqual(service["Restart"], "on-failure")
                 self.assertEqual(service["RestartSec"], "2")
                 self.assertEqual(service["TimeoutStopSec"], "10")
-                self.assertEqual(service["ExecStart"], "/usr/bin/python3 /opt/raspydarts-pico/%s "
+                self.assertEqual(service["ExecStart"], "/usr/bin/python3 /opt/dartspico-bridge/%s "
                                  "--config %s" % (script, config))
+                self.assertEqual(service["WorkingDirectory"], "/opt/dartspico-bridge")
+                self.assertTrue(u["Unit"]["Description"].startswith("DartsPico-Bridge : "))
                 self.assertTrue((ROOT / script).is_file())
         self.assertEqual(self.read("raspydarts-hwd.service")["Service"]["SupplementaryGroups"],
                          "dialout")

@@ -2,7 +2,7 @@
 # Copyright (C) 2026 Gohy Yves
 # Licence : GPL v3 (voir LICENSE à la racine du dépôt).
 #
-# Applique les patchs de RaspyDarts-Pico sur une copie de RaspyDarts (docs/PI_INTERFACE.md § 6).
+# Applique les patchs de DartsPico-Bridge sur une copie de RaspyDarts (docs/PI_INTERFACE.md § 6).
 #
 #   tools/apply_patches.sh [--check] [--patches DOSSIER] <copie de RaspyDarts>
 #
@@ -100,7 +100,7 @@ fi
 
 n=0
 for p in $LIST; do
-    if ! git -C "$WORK" -c user.name=RaspyDarts-Pico -c user.email=noreply@invalid \
+    if ! git -C "$WORK" -c user.name=DartsPico-Bridge -c user.email=noreply@invalid \
             am --quiet --keep-cr "$PATCHES/$p"; then
         git -C "$WORK" am --abort 2>/dev/null || true
         echo "Le patch $p ne s'applique pas sur $BASE." >&2
@@ -124,6 +124,6 @@ cp "$ROOT/pi/raspydarts_layer/shims/rpi_ws281x.py" "$TARGET/pico_shims/rpi_ws281
 cat "$BANNER" "$TARGET/README.md" > "$TARGET/README.md.tmp"
 mv "$TARGET/README.md.tmp" "$TARGET/README.md"
 git -C "$TARGET" add include/cpico.py include/hwbus.py include/pico_proto.py pico_shims/rpi_ws281x.py README.md
-git -C "$TARGET" -c user.name=RaspyDarts-Pico -c user.email=noreply@invalid \
-    commit --quiet -m "RaspyDarts-Pico: add new files (cpico, hwbus, pico_proto, rpi_ws281x) and README banner"
+git -C "$TARGET" -c user.name=DartsPico-Bridge -c user.email=noreply@invalid \
+    commit --quiet -m "DartsPico-Bridge: add new files (cpico, hwbus, pico_proto, rpi_ws281x) and README banner"
 echo "OK : $n patch(s) appliqué(s) et fichiers nouveaux copiés dans $TARGET."

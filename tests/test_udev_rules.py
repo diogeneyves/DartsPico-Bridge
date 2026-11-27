@@ -14,7 +14,7 @@ import unittest
 from pathlib import Path
 
 ROOT = Path(__file__).resolve().parents[1]
-RULES = ROOT / "pi" / "udev" / "73-raspydarts-pico.rules"
+RULES = ROOT / "pi" / "udev" / "73-dartspico-bridge.rules"
 INSTALL = ROOT / "tools" / "install_services.sh"
 I75W_SH = ROOT / "tools" / "bench_i75w" / "i75w.sh"
 
@@ -102,12 +102,12 @@ class InstallServicesUdevTest(unittest.TestCase):
                                 text=True, timeout=60)
         self.assertEqual(result.returncode, 0, result.stderr)
         self.assertIn("rien n'a été envoyé", result.stdout)
-        self.assertIn("pi/udev/73-raspydarts-pico.rules", result.stdout)
-        self.assertIn("/etc/udev/rules.d/73-raspydarts-pico.rules", result.stdout)
+        self.assertIn("pi/udev/73-dartspico-bridge.rules", result.stdout)
+        self.assertIn("/etc/udev/rules.d/73-dartspico-bridge.rules", result.stdout)
         self.assertIn("udevadm control --reload", result.stdout)
 
     def test_rule_required_installed_and_reloaded(self):
-        self.assertIn('UDEV_NAME="73-raspydarts-pico.rules"', self.code)
+        self.assertIn('UDEV_NAME="73-dartspico-bridge.rules"', self.code)
         self.assertIn('UDEV_RULE="pi/udev/$UDEV_NAME"', self.code)
         self.assertIn('UDEV_DIR="/etc/udev/rules.d"', self.code)
         self.assertRegex(self.code, r'required=\([^)]*"\$UDEV_RULE"\)')     # absente : exit 2
@@ -116,6 +116,12 @@ class InstallServicesUdevTest(unittest.TestCase):
         self.assertIn(install, self.code)
         self.assertNotIn('-e "$UDEV_DIR', self.code)
         self.assertLess(self.code.index(install), self.code.index("udevadm control --reload\n"))
+
+    def test_install_names(self):
+        # Complément 84 : dossier d'installation et archive envoyée au Pi au nouveau nom.
+        self.assertIn('OPT_DIR="/opt/dartspico-bridge"', self.code)
+        self.assertIn('REMOTE_ARCHIVE="/tmp/dartspico-bridge-install.tgz"', self.code)
+        self.assertNotIn("raspydarts-pico", self.code.lower())
 
     def test_trigger_left_to_hand(self):
         self.assertNotIn("udevadm trigger", self.code)

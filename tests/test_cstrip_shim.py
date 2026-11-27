@@ -26,7 +26,7 @@ class RealCStrip(unittest.TestCase):
         assert cls.status_before == "", "clone déjà modifié : %r" % cls.status_before
         assert _orig.available()                 # code de la copie = BASE
         cls.saved_path = list(sys.path)
-        cls.saved_env = os.environ.get("RASPYDARTS_PICO_LED_CHANNEL")
+        cls.saved_env = os.environ.get("DARTSPICO_BRIDGE_LED_CHANNEL")
         for name in ("rpi_ws281x", "Colors", "CStrip_orig"):
             sys.modules.pop(name, None)
         sys.path.insert(0, os.path.join(_orig.ORIG, "addons"))   # pour « import Colors »
@@ -41,9 +41,9 @@ class RealCStrip(unittest.TestCase):
         for name in ("Colors", "CStrip_orig"):
             sys.modules.pop(name, None)
         if cls.saved_env is None:
-            os.environ.pop("RASPYDARTS_PICO_LED_CHANNEL", None)
+            os.environ.pop("DARTSPICO_BRIDGE_LED_CHANNEL", None)
         else:
-            os.environ["RASPYDARTS_PICO_LED_CHANNEL"] = cls.saved_env
+            os.environ["DARTSPICO_BRIDGE_LED_CHANNEL"] = cls.saved_env
         after = _orig.status()
         assert after == "", "le test a écrit dans le clone : %r" % after
 
@@ -52,7 +52,7 @@ class RealCStrip(unittest.TestCase):
         self.enterContext(contextlib.redirect_stdout(io.StringIO()))
         self.sent = []
         self.shim.set_transport(lambda t, p: self.sent.append((t, p)))
-        os.environ["RASPYDARTS_PICO_LED_CHANNEL"] = "1"
+        os.environ["DARTSPICO_BRIDGE_LED_CHANNEL"] = "1"
 
     def tearDown(self):
         self.shim.set_transport(None)

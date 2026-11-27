@@ -176,12 +176,12 @@ class EndToEnd(unittest.TestCase):
 
     def test_led_frame_from_shim(self):
         rig = self.rig
-        os.environ["RASPYDARTS_PICO_LED_CHANNEL"] = "1"
+        os.environ["DARTSPICO_BRIDGE_LED_CHANNEL"] = "1"
         try:
             strip = rpi_ws281x.PixelStrip(3, 18, 800000, 9, False, 255, 0,
                                           strip_type=rpi_ws281x.WS2811_STRIP_RGB)
         finally:
-            del os.environ["RASPYDARTS_PICO_LED_CHANNEL"]
+            del os.environ["DARTSPICO_BRIDGE_LED_CHANNEL"]
         strip.begin()
         strip.setPixelColor(1, rpi_ws281x.Color(1, 2, 3))
         strip.show()

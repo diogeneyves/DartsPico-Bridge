@@ -125,7 +125,7 @@ class ApplyArchiveTest(unittest.TestCase):
         return files
 
     def test_udev_rule_filled_with_exact_case(self):
-        rule = self.apply()["udev/73-raspydarts-pico.rules"]
+        rule = self.apply()["udev/73-dartspico-bridge.rules"]
         self.assertNotIn("<SERIE_", rule)
         self.assertIn('ATTRS{idProduct}=="0005", ATTRS{serial}=="%s", SYMLINK+="cible"' % PICO, rule)
         self.assertIn('ATTRS{idProduct}=="0009", ATTRS{serial}=="%s", SYMLINK+="dmd"' % I75W, rule)
@@ -160,7 +160,7 @@ class UdevMarkerRefusalTest(unittest.TestCase):
                 shutil.copy2(src, dst)
         subprocess.run(["git", "init", "-q"], cwd=self.repo, check=True)
         subprocess.run(["git", "add", "-A"], cwd=self.repo, check=True)
-        self.rule = self.repo / "pi" / "udev" / "73-raspydarts-pico.rules"
+        self.rule = self.repo / "pi" / "udev" / "73-dartspico-bridge.rules"
         self.script = self.repo / "tools" / "install_services.sh"
 
     def test_control_copy_runs(self):

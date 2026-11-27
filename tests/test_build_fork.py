@@ -22,14 +22,14 @@ BUILD = os.path.join(ROOT, "tools", "build_fork.sh")
 CHECK = os.path.join(ROOT, "tools", "check_fork.sh")
 PATCHES = os.path.join(ROOT, "pi", "patches")
 IDENTITY = "Gohy Yves <6154641+diogeneyves@users.noreply.github.com>"
-ELEVENTH = "RaspyDarts-Pico: add new files (cpico, hwbus, pico_proto, rpi_ws281x) and README banner"
+ELEVENTH = "DartsPico-Bridge: add new files (cpico, hwbus, pico_proto, rpi_ws281x) and README banner"
 # Bandeau du README du fork (complément 83), ajouté en tête du README.md de l'amont.
 BANNER = os.path.join(PATCHES, "FORK_README_BANNER.md")
 NEW_FILES = ("include/cpico.py", "include/hwbus.py", "include/pico_proto.py",
              "pico_shims/rpi_ws281x.py")
 # Identité imposée par apply_patches.sh (lignes 95-96 et 116-117), qui doit céder devant
 # GIT_AUTHOR_* et GIT_COMMITTER_*.
-APPLY_IDENTITY = "RaspyDarts-Pico <noreply@invalid>"
+APPLY_IDENTITY = "DartsPico-Bridge <noreply@invalid>"
 TEST_IDENTITY = ("-c", "user.name=Test", "-c", "user.email=test@invalid")
 
 
@@ -78,10 +78,24 @@ class Banner(unittest.TestCase):
         self.assertIn("`%s`" % _orig.BASE_COMMIT[:7], self.text)
 
     def test_content_french_then_english(self):
-        for want in ("https://github.com/rmdelcelier/RaspyDarts",
-                     "https://github.com/diogeneyves/RaspyDarts-Pico", "GPL v3", "(LICENSE)"):
+        for want in ("https://github.com/diogeneyves/DartsPico-Bridge", "GPL v3", "(LICENSE)",
+                     "<https://github.com/rmdelcelier/RaspyDarts>",
+                     "(https://github.com/rmdelcelier/RaspyDarts)"):
             self.assertEqual(self.text.count(want), 2, want)
         self.assertLess(self.text.index("modifiée en 2026"), self.text.index("modified in 2026"))
+
+    def test_unofficial_notice_first(self):
+        # Complément 84 : juste après le nom en gras, la phrase « projet indépendant », puis
+        # l'ancienne première phrase avec une majuscule ; ni ancien nom, ni mention de l'auteur.
+        fr, en = self.text.split("\n>\n")[:2]
+        self.assertTrue(fr.startswith(
+            "> **DartsPico-Bridge** : Projet indépendant, non officiel. RaspyDarts officiel : "
+            "<https://github.com/rmdelcelier/RaspyDarts>. Version de [RaspyDarts]("), fr)
+        self.assertTrue(en.startswith(
+            "> **DartsPico-Bridge**: Independent, unofficial project. Official RaspyDarts: "
+            "<https://github.com/rmdelcelier/RaspyDarts>. Version of [RaspyDarts]("), en)
+        self.assertNotIn("raspydarts-pico", self.text.lower())
+        self.assertNotIn("rmdelcelier/RaspyDarts-", self.text)
 
     def test_lf_and_separator(self):
         self.assertNotIn(b"\r", self.raw)

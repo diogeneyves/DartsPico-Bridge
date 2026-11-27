@@ -495,16 +495,16 @@ class ShimDetails(unittest.TestCase):
     def setUp(self):
         self.got = []
         rpi_ws281x.set_transport(lambda t, p: self.got.append((t, p)))
-        self.saved = os.environ.pop("RASPYDARTS_PICO_LED_CHANNEL", None)
+        self.saved = os.environ.pop("DARTSPICO_BRIDGE_LED_CHANNEL", None)
 
     def tearDown(self):
         rpi_ws281x.set_transport(None)
-        os.environ.pop("RASPYDARTS_PICO_LED_CHANNEL", None)
+        os.environ.pop("DARTSPICO_BRIDGE_LED_CHANNEL", None)
         if self.saved is not None:
-            os.environ["RASPYDARTS_PICO_LED_CHANNEL"] = self.saved
+            os.environ["DARTSPICO_BRIDGE_LED_CHANNEL"] = self.saved
 
     def test_channel_from_environment(self):
-        os.environ["RASPYDARTS_PICO_LED_CHANNEL"] = "2"
+        os.environ["DARTSPICO_BRIDGE_LED_CHANNEL"] = "2"
         s = rpi_ws281x.PixelStrip(1, 18)                           # pin de la config du jeu
         s.show()
         self.assertEqual(self.got[-1][0], "raspydarts/hw/led/2")
@@ -512,10 +512,10 @@ class ShimDetails(unittest.TestCase):
     def test_refusals(self):
         with self.assertRaises(ValueError):
             rpi_ws281x.PixelStrip(1, 18)                           # ni variable ni pin 0 à 2
-        os.environ["RASPYDARTS_PICO_LED_CHANNEL"] = "3"
+        os.environ["DARTSPICO_BRIDGE_LED_CHANNEL"] = "3"
         with self.assertRaises(ValueError):
             rpi_ws281x.PixelStrip(1, 0)
-        os.environ["RASPYDARTS_PICO_LED_CHANNEL"] = "0"
+        os.environ["DARTSPICO_BRIDGE_LED_CHANNEL"] = "0"
         with self.assertRaises(ValueError):
             rpi_ws281x.PixelStrip(301, 0)
         rpi_ws281x.PixelStrip(300, 0)
@@ -535,7 +535,7 @@ class ShimDetails(unittest.TestCase):
     def test_get_brightness_is_game_value_not_cap(self):
         # § 3.8 point 6 : le plafond (led_brightness de hwd, 128 sur le canal 0)
         # est appliqué par hwd ; le remplaçant garde et renvoie la valeur du jeu.
-        os.environ["RASPYDARTS_PICO_LED_CHANNEL"] = "0"
+        os.environ["DARTSPICO_BRIDGE_LED_CHANNEL"] = "0"
         s = rpi_ws281x.PixelStrip(3, 18, brightness=200)
         s.begin()
         self.assertEqual(s.getBrightness(), 200)

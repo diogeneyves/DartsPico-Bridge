@@ -1,7 +1,7 @@
 # Copyright (C) 2026 Gohy Yves
 # Licence : GPL v3 (voir LICENSE à la racine du dépôt).
 #
-# RaspyDarts-Pico : liens stables des deux ports série (spécification § 2, complément 62).
+# DartsPico-Bridge : liens stables des deux ports série (spécification § 2, complément 62).
 # Installé par tools/install_services.sh --apply dans /etc/udev/rules.d/, écrasé à chaque fois ;
 # appliqué aux cartes déjà branchées par « udevadm trigger », à la main (docs/PROCEDURE.md, § 2.6).
 #

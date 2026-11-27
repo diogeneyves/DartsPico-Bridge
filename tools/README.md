@@ -59,7 +59,7 @@ tools/sync_medias.sh --source "/chemin/des/medias"
 ## Services hwd et rendu du DMD
 
 `install_services.sh` (spécification § 9.9, 50e complément ; procédure : `docs/PROCEDURE.md`,
-§ 2) : installe le code dans `/opt/raspydarts-pico/`, les unités `raspydarts-hwd.service` et
+§ 2) : installe le code dans `/opt/dartspico-bridge/`, les unités `raspydarts-hwd.service` et
 `raspydarts-dmd.service` (sans les activer) et, s'ils manquent, `/etc/raspydarts/hwd.toml` et
 `dmd.toml`. Essai à blanc par défaut, sans aucune connexion ; installation par `ssh -4` et `sudo`
 seulement avec `--apply`. Options obligatoires (complément 77) : `--user` (utilisateur des unités ;
@@ -81,7 +81,7 @@ Lancé par les tests dans un dossier temporaire ; il refuse d'écrire dans le d�
 python3 tools/make_test_gifs.py /tmp/gifs-dmd
 ```
 
-## Fork RaspyDarts-Pico-game
+## Fork DartsPico-Bridge-game
 
 `build_fork.sh` (spécification, compléments 78 à 80 ; `docs/UPSTREAM.md`) : construit la branche
 `main` du fork dans un dossier inexistant ou vide, hors du dépôt : clone de l'amont (`--upstream`,
@@ -96,7 +96,10 @@ tools/build_fork.sh /chemin/hors/du/depot/fork
 tools/check_fork.sh /chemin/du/clone/du/fork /chemin/hors/du/depot/fork
 ```
 
-## Export du dépôt RaspyDarts-Pico
+## Export du commit initial (historique)
+
+`export_repo.sh` a servi au commit initial `215eb9c`, sous l'ancien nom RaspyDarts-Pico ;
+le script et son test sont figés, avec les noms de l'époque (spécification, complément 84).
 
 `export_repo.sh` (spécification, complément 81) : prépare, dans un dossier inexistant ou vide hors
 du dépôt (prévu : `~/RaspyDarts-Pico-export`), le commit initial unique de

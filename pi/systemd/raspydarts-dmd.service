@@ -1,11 +1,11 @@
-# RaspyDarts-Pico : service de rendu du DMD (spécification § 9.9, 50e complément).
+# DartsPico-Bridge : service de rendu du DMD (spécification § 9.9, 50e complément).
 # Installé par tools/install_services.sh dans /etc/systemd/system/, sans être activé.
 # User et Group : marqueurs remplis à l'installation par pi/systemd/fill_units.sh (--user,
 # groupe principal de cet utilisateur lu sur le Pi, complément 77).
 # Démarrage : environ 8 s de décodage des médias avant la première image ; pendant ce temps,
 # l'Interstate 75 W affiche son animation de secours.
 [Unit]
-Description=RaspyDarts-Pico : service de rendu du DMD
+Description=DartsPico-Bridge : service de rendu du DMD
 After=mosquitto.service
 Wants=mosquitto.service
 
@@ -13,9 +13,9 @@ Wants=mosquitto.service
 Type=simple
 User=@RASPYDARTS_USER@
 Group=@RASPYDARTS_GROUP@
-WorkingDirectory=/opt/raspydarts-pico
+WorkingDirectory=/opt/dartspico-bridge
 Environment=PYTHONDONTWRITEBYTECODE=1
-ExecStart=/usr/bin/python3 /opt/raspydarts-pico/pi/dmd/dmd_service.py --config /etc/raspydarts/dmd.toml
+ExecStart=/usr/bin/python3 /opt/dartspico-bridge/pi/dmd/dmd_service.py --config /etc/raspydarts/dmd.toml
 Restart=on-failure
 RestartSec=2
 TimeoutStopSec=10

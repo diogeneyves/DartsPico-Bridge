@@ -1,5 +1,5 @@
-# Intégration continue de RaspyDarts-Pico : vérifie les patchs et lance les tests unitaires.
-name: RaspyDarts-Pico tests
+# Intégration continue de DartsPico-Bridge : vérifie les patchs et lance les tests unitaires.
+name: DartsPico-Bridge tests
 
 on:
   push:
@@ -404,16 +404,16 @@ jobs:
           grep -q "SC2086" "$log" \
             || { echo "::error::témoin actionlint : « SC2086 » absent, shellcheck inactif ?"; exit 1; }
           echo "Témoin refusé par actionlint et shellcheck, code 1 : bon"
-      - name: actionlint sur le workflow de RaspyDarts-Pico
+      - name: actionlint sur le workflow de DartsPico-Bridge
         run: |
           log="$RUNNER_TEMP/actionlint.log"
           set +e
-          actionlint -no-color .github/workflows/raspydarts-pico-tests.yml > "$log" 2>&1
+          actionlint -no-color .github/workflows/dartspico-bridge-tests.yml > "$log" 2>&1
           rc=$?
           set -e
           cat "$log"
           {
-            echo "Sortie de \`actionlint -no-color .github/workflows/raspydarts-pico-tests.yml\` (code $rc) :"
+            echo "Sortie de \`actionlint -no-color .github/workflows/dartspico-bridge-tests.yml\` (code $rc) :"
             echo
             echo "~~~text"
             cat "$log"

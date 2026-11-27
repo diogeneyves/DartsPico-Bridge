@@ -5,7 +5,7 @@
 ;
 ; Origine : drivers/hub75/hub75.pio de pimoroni-pico v1.29.0-2, commit
 ; 39b017a30717ed68e5ff15163bac89489acd09df (specification section 8).
-; Modification (2026, RaspyDarts-Pico, 37e complement) : programme
+; Modification (2026, DartsPico-Bridge, 37e complement) : programme
 ; hub75_row_inverted retire (strobe non inverse, fige a la compilation).
 ; Le reste est inchange.
 ;

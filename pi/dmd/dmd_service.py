@@ -21,7 +21,7 @@ virtuel (dmd_web, 47e complément) et, si hdmi_output = 1, vers l'écran HDMI d�
 en paramètre (main() l'importe).
 
 Sur le Pi (50e complément) : unité systemd raspydarts-dmd.service, code dans
-/opt/raspydarts-pico (structure du dépôt), configuration /etc/raspydarts/dmd.toml :
+/opt/dartspico-bridge (structure du dépôt), configuration /etc/raspydarts/dmd.toml :
 
     python3 pi/dmd/dmd_service.py --config /etc/raspydarts/dmd.toml
 

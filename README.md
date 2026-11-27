@@ -1,15 +1,15 @@
-# RaspyDarts-Pico
+# DartsPico-Bridge
 
 **Une borne de fléchettes RaspyDarts dont le matériel passe par deux cartes USB : une carte Pico pour la cible et une carte Interstate 75 W pour le DMD.**
 
-RaspyDarts-Pico refond et réunit **RaspyDarts** (le jeu de fléchettes) et **Raspy2DMD** (l'afficheur DMD)
+DartsPico-Bridge, projet indépendant et non officiel, refond et réunit **RaspyDarts** (le jeu de fléchettes) et **Raspy2DMD** (l'afficheur DMD)
 en un système à trois cartes. Le jeu et les animations restent sur le Raspberry Pi 4. Les deux autres cartes
 lisent et écrivent les signaux électriques, avec le moins de logique possible, et sont reliées au Pi
 par USB.
 
 Le schéma des cartes et de leurs liaisons est expliqué dans [`docs/ARCHITECTURE.md`](docs/ARCHITECTURE.md).
 
-Dépôt : <https://github.com/diogeneyves/RaspyDarts-Pico>.
+Dépôt : <https://github.com/diogeneyves/DartsPico-Bridge>.
 
 ## Origine et crédits
 

@@ -8,7 +8,7 @@ luminosité sur raspydarts/hw/led/<canal> ; hwd l'envoie au Pico (LEDF).
 La luminosité du jeu part à part, par `LEDB <canal> <valeur>` sur
 raspydarts/hw/cmd (à begin() et à chaque setBrightness()) ; hwd la plafonne
 et le Pico l'applique une seule fois (spécification § 3.8, § 5.3, v0.3.14).
-Canal : variable RASPYDARTS_PICO_LED_CHANNEL (0, 1 ou 2), sinon pin si 0 à 2.
+Canal : variable DARTSPICO_BRIDGE_LED_CHANNEL (0, 1 ou 2), sinon pin si 0 à 2.
 """
 
 import os
@@ -52,10 +52,10 @@ def Color(red, green, blue, white=0):
 class PixelStrip:
     def __init__(self, num, pin, freq_hz=800000, dma=10, invert=False, brightness=255,
                  channel=0, strip_type=None, gamma=None):
-        env = os.environ.get("RASPYDARTS_PICO_LED_CHANNEL")
+        env = os.environ.get("DARTSPICO_BRIDGE_LED_CHANNEL")
         led_channel = int(env) if env is not None else int(pin)
         if led_channel not in (0, 1, 2):
-            raise ValueError("canal LED inconnu : définir RASPYDARTS_PICO_LED_CHANNEL (0, 1 ou 2)")
+            raise ValueError("canal LED inconnu : définir DARTSPICO_BRIDGE_LED_CHANNEL (0, 1 ou 2)")
         if not 0 <= num <= MAX_LEDS:
             raise ValueError("%d LED : 300 au plus par canal" % num)
         self.led_channel = led_channel

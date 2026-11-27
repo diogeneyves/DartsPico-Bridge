@@ -6,7 +6,7 @@
 #
 # Usage : tools/check_fork.sh FORK RÉFÉRENCE
 #
-#   FORK       clone du fork RaspyDarts-Pico-game, branche à contrôler extraite (HEAD)
+#   FORK       clone du fork DartsPico-Bridge-game, branche à contrôler extraite (HEAD)
 #   RÉFÉRENCE  fork fraîchement construit par tools/build_fork.sh
 #
 # Vérifie, pour FORK et RÉFÉRENCE : HEAD~11 = BASE (pi/patches/BASE), 11 commits exactement,

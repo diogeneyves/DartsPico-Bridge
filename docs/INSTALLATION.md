@@ -1,4 +1,4 @@
-# Installation de RaspyDarts-Pico
+# Installation de DartsPico-Bridge
 
 > **Brouillon : installation pas encore validée de bout en bout.**
 
@@ -24,9 +24,9 @@ Valeurs à remplacer par les vôtres :
 
 | Valeur | Contenu |
 |---|---|
-| `<DOSSIER-PROJET>` | Dossier `RaspyDarts-Pico` du clone, sur le Pi ou sur le Mac (racine du clone ou sous-dossier) ; seule forme de ce marqueur (complément 79) |
+| `<DOSSIER-PROJET>` | Dossier du projet, sur le Pi ou sur le Mac : racine du clone `DartsPico-Bridge`, ou sous-dossier `RaspyDarts-Pico/` (nom historique) de `My_GIT_Projects` ; seule forme de ce marqueur (complément 79) |
 | `<COPIE-RASPYDARTS>` | Dossier de la copie git de RaspyDarts qui reçoit les patchs |
-| `<SERIE_PICO>` | Numéro de série USB du Pico 2 sous MicroPython (minuscules), relevé à la section 8 ; même marqueur que dans `pi/udev/73-raspydarts-pico.rules` |
+| `<SERIE_PICO>` | Numéro de série USB du Pico 2 sous MicroPython (minuscules), relevé à la section 8 ; même marqueur que dans `pi/udev/73-dartspico-bridge.rules` |
 | `<SERIE_I75W>` | Numéro de série USB de l'Interstate 75 W sous le firmware C++ (majuscules), relevé à la section 8 ; même marqueur que dans la règle udev |
 | `<utilisateur>` | Compte du Pi sous lequel tournent les deux services (unités systemd) et qui garde les médias |
 | `<PORT>` | Port série d'une carte (`ttyACM0`, `ttyACM1`…), lu dans `/dev/serial/by-id/` |
@@ -104,7 +104,7 @@ décrit pas. Ce que la spécification en dit :
 - il crée `/etc/sudoers.d/010_raspydarts-nopasswd` (`NOPASSWD: ALL`, spécification § 9.8) ;
 - il extrait une archive d'exemple qui ne contient que `themes/`, sans configuration du jeu (§ 9.4).
 
-**[À VENIR]** Le jeu patché sera installé en clonant le fork public `RaspyDarts-Pico-game`
+**[À VENIR]** Le jeu patché sera installé en clonant le fork public `DartsPico-Bridge-game`
 (`8fa61ff`, patchs 0001 à 0010 et fichiers nouveaux déjà appliqués), au lieu du clonage de l'amont, du
 `checkout` et de `tools/apply_patches.sh` du § 4 (spécification, complément 78). Le fork n'existe pas
 encore : d'ici là, suivre le § 4. Mise à jour du jeu installé : non décidée (spécification § 12, point 25).
@@ -117,7 +117,7 @@ Spécification § 9.1 ; [`PI_INTERFACE.md`](PI_INTERFACE.md) § 6 ;
 ### 4.1 Cloner ce dépôt (*non vérifié*)
 
 ```bash
-git clone https://github.com/diogeneyves/RaspyDarts-Pico
+git clone https://github.com/diogeneyves/DartsPico-Bridge
 ```
 
 Dans la suite, les commandes se lancent depuis `<DOSSIER-PROJET>`.
@@ -279,7 +279,7 @@ affiche son animation de secours « RASPYDARTS » (§ 8).
 
 Spécification § 2 (complément 62) ; [`PROCEDURE.md`](PROCEDURE.md) § 2.6.
 
-La règle `pi/udev/73-raspydarts-pico.rules` crée `/dev/cible` (Pico 2 sous MicroPython, `2e8a:0005`) et
+La règle `pi/udev/73-dartspico-bridge.rules` crée `/dev/cible` (Pico 2 sous MicroPython, `2e8a:0005`) et
 `/dev/dmd` (Interstate 75 W sous le firmware C++, `2e8a:0009`), par VID:PID et **numéro de série en
 casse exacte** : minuscules sous MicroPython, majuscules sous le firmware C++. Le fichier du dépôt
 contient les marqueurs `<SERIE_PICO>` et `<SERIE_I75W>` (complément 77) : **il faut y mettre vos
@@ -329,7 +329,7 @@ règle s'installe à la main (les motifs `[<]SERIE_…[>]` visent les marqueurs 
 les remplacer à la main) :
 
 ```bash
-sed -e "s/[<]SERIE_PICO[>]/$PICO_SERIAL/" -e "s/[<]SERIE_I75W[>]/$I75W_SERIAL/" pi/udev/73-raspydarts-pico.rules | sudo tee /etc/udev/rules.d/73-raspydarts-pico.rules
+sed -e "s/[<]SERIE_PICO[>]/$PICO_SERIAL/" -e "s/[<]SERIE_I75W[>]/$I75W_SERIAL/" pi/udev/73-dartspico-bridge.rules | sudo tee /etc/udev/rules.d/73-dartspico-bridge.rules
 ```
 
 `install_services.sh --apply` fait le `reload`, jamais le `trigger` ([`PROCEDURE.md`](PROCEDURE.md)
@@ -357,8 +357,8 @@ Spécification § 9.5 et § 9.9 (50e complément) ; [`PROCEDURE.md`](PROCEDURE.m
 trois options obligatoires : `--user <utilisateur>`, `--pico-serial <SERIE_PICO>` (minuscules) et
 `--i75w-serial <SERIE_I75W>` (majuscules). Ce qu'il fait sur le Pi, avec `sudo` :
 
-- copie des fichiers de `pi/hwd`, `pi/dmd` et `shared` dans `/opt/raspydarts-pico/` (même structure que
-  le dépôt), à root, dossiers 755, fichiers 644, et la révision dans `/opt/raspydarts-pico/REVISION` ;
+- copie des fichiers de `pi/hwd`, `pi/dmd` et `shared` dans `/opt/dartspico-bridge/` (même structure que
+  le dépôt), à root, dossiers 755, fichiers 644, et la révision dans `/opt/dartspico-bridge/REVISION` ;
   rien n'y est effacé ;
 - unités `raspydarts-hwd.service` et `raspydarts-dmd.service` dans `/etc/systemd/system/`, après
   remplissage de `User=` et `Group=` par `pi/systemd/fill_units.sh` (utilisateur inconnu ou marqueur
@@ -371,11 +371,11 @@ trois options obligatoires : `--user <utilisateur>`, `--pico-serial <SERIE_PICO>
 Équivalent sur le Pi, depuis `<DOSSIER-PROJET>` (*non vérifié*) :
 
 ```bash
-sudo install -d -m 755 /opt/raspydarts-pico/pi && sudo cp -R pi/hwd pi/dmd /opt/raspydarts-pico/pi/ && sudo cp -R shared /opt/raspydarts-pico/ && git describe --always --dirty | sudo tee /opt/raspydarts-pico/REVISION
+sudo install -d -m 755 /opt/dartspico-bridge/pi && sudo cp -R pi/hwd pi/dmd /opt/dartspico-bridge/pi/ && sudo cp -R shared /opt/dartspico-bridge/ && git describe --always --dirty | sudo tee /opt/dartspico-bridge/REVISION
 ```
 
 ```bash
-sudo chown -R root:root /opt/raspydarts-pico && sudo find /opt/raspydarts-pico -type d -exec chmod 755 {} + && sudo find /opt/raspydarts-pico -type f -exec chmod 644 {} +
+sudo chown -R root:root /opt/dartspico-bridge && sudo find /opt/dartspico-bridge -type d -exec chmod 755 {} + && sudo find /opt/dartspico-bridge -type f -exec chmod 644 {} +
 ```
 
 ```bash

@@ -12,11 +12,11 @@ import unittest
 from pathlib import Path
 
 ROOT = Path(__file__).resolve().parents[1]
-WORKFLOW_REL = Path(".github") / "workflows" / "raspydarts-pico-tests.yml"
+WORKFLOW_REL = Path(".github") / "workflows" / "dartspico-bridge-tests.yml"
 
 
 def find_workflow(root):
-    """Workflow à la racine du projet (dépôt RaspyDarts-Pico), sinon au-dessus (My_GIT_Projects),
+    """Workflow à la racine du projet (dépôt DartsPico-Bridge), sinon au-dessus (My_GIT_Projects),
     complément 81. Aucun des deux : le chemin de la racine, absent, pour que les tests échouent
     (jamais de saut)."""
     for base in (root, root.parent):

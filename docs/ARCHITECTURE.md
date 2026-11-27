@@ -1,4 +1,4 @@
-# Architecture de RaspyDarts-Pico
+# Architecture de DartsPico-Bridge
 
 Vue d'ensemble des trois cartes, de leurs liaisons et de leur alimentation. La référence détaillée reste
 [`SPECIFICATION.md`](SPECIFICATION.md) ; chaque bloc ci-dessous renvoie à sa section.
@@ -95,7 +95,7 @@ matrice de la cible ED110, les 15 boutons et le détecteur de choc, et pilote le
 [`hardware/pinout.json`](../hardware/pinout.json).
 
 **Liaison** : USB série, nom stable **`/dev/cible`** donné par une règle udev selon le VID:PID et le numéro de
-série (`pi/udev/73-raspydarts-pico.rules`, § 2). Protocole en lignes de texte, décrit au § 5.
+série (`pi/udev/73-dartspico-bridge.rules`, § 2). Protocole en lignes de texte, décrit au § 5.
 
 **Alimentation** (§ 3.7) : entrée **5 V** sur `P1` (fusible 20 A), répartie en rails protégés chacun par son
 fusible (logique, LED de la cible, voyants, Toys en 5 V) ; entrée **12 V** sur `P3` (fusible 20 A) pour les

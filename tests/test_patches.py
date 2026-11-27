@@ -29,7 +29,7 @@ PATCH_0001 = os.path.join(PATCHES, "0001-craspberry-mode-pico.patch")
 
 
 # Identité git fournie par les tests : la CI n'en a aucune (HOME neuf, pas de configuration)
-GIT_IDENTITY = ("-c", "user.name=RaspyDarts-Pico tests", "-c", "user.email=tests@invalid")
+GIT_IDENTITY = ("-c", "user.name=DartsPico-Bridge tests", "-c", "user.email=tests@invalid")
 
 
 def git(*args, cwd):

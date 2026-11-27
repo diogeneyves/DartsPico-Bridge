@@ -7,6 +7,9 @@ L'export se fait dans un dossier temporaire, jamais dans ~/RaspyDarts-Pico-expor
 lit seulement le dépôt (HEAD) ; la suite de tests n'est jamais lancée dans l'export ici
 (--run-tests n'est pas passé). Dans le dépôt exporté lui-même, le projet est à la racine :
 il n'y a plus rien à exporter, les tests qui exportent sont sautés.
+
+Note historique : a servi au commit initial 215eb9c, sous l'ancien nom ; test figé,
+constantes inchangées (spécification, complément 84).
 """
 
 import difflib

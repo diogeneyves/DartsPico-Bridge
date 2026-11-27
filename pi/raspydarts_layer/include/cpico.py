@@ -520,7 +520,7 @@ class PicoTargetSource:
 # (patch 0005 de raspydarts.py, docs/PI_INTERFACE.md § 5.4). PIN_TARGETLED et PIN_STRIPLED
 # sont alors des canaux de la carte (cible 0, ruban 1, spécification § 9.2). Les serveurs
 # tournent sans sudo, pico_shims/ en tête de PYTHONPATH : addons/CStrip.py charge le
-# remplaçant de rpi_ws281x, qui lit le canal dans RASPYDARTS_PICO_LED_CHANNEL. Les deux
+# remplaçant de rpi_ws281x, qui lit le canal dans DARTSPICO_BRIDGE_LED_CHANNEL. Les deux
 # serveurs et CStrip.py restent inchangés : StripLeds_Server.py n'accepte que les broches
 # 10, 12, 18 ou 21, d'où une broche fictive.
 
@@ -563,7 +563,7 @@ def led_server_env(root_dir, channel, broker, environ=None):
     env = dict(os.environ if environ is None else environ)
     shims = os.path.join(root_dir, "pico_shims")
     env["PYTHONPATH"] = shims + (os.pathsep + env["PYTHONPATH"] if env.get("PYTHONPATH") else "")
-    env["RASPYDARTS_PICO_LED_CHANNEL"] = str(channel)
+    env["DARTSPICO_BRIDGE_LED_CHANNEL"] = str(channel)
     env["RASPYDARTS_MQTT_HOST"] = str(broker or "localhost")
     return env
 

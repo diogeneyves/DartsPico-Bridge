@@ -4,7 +4,7 @@
 
 En mode Pico, PIN_TARGETLED et PIN_STRIPLED sont des canaux de la carte (0 à 2 ; cible 0,
 ruban 1) : les serveurs LED sont lancés sans sudo, avec le remplaçant de rpi_ws281x
-(pico_shims/ en tête de PYTHONPATH), le canal dans RASPYDARTS_PICO_LED_CHANNEL et une
+(pico_shims/ en tête de PYTHONPATH), le canal dans DARTSPICO_BRIDGE_LED_CHANNEL et une
 broche fictive (18) que StripLeds_Server.py accepte. En mode normal, mêmes commandes que
 l'original.
 
@@ -148,7 +148,7 @@ class Patch0005(unittest.TestCase):
             env = kwargs.get("env")
             if env is not None:
                 kwargs["env"] = {k: v for k, v in env.items()
-                                 if k in ("PYTHONPATH", "RASPYDARTS_PICO_LED_CHANNEL",
+                                 if k in ("PYTHONPATH", "DARTSPICO_BRIDGE_LED_CHANNEL",
                                           "RASPYDARTS_MQTT_HOST")}
         return {"subscribers": namespace["subsribers"], "popen": popen,
                 "strip": (dispatcher.strip_leds, namespace["p_strip"] is not None),
@@ -193,14 +193,14 @@ class Patch0005(unittest.TestCase):
         for kwargs, channel in ((strip_kw, "1"), (target_kw, "0")):
             env = kwargs["env"]
             self.assertEqual(env["PYTHONPATH"].split(os.pathsep)[0], shims)
-            self.assertEqual(env["RASPYDARTS_PICO_LED_CHANNEL"], channel)
+            self.assertEqual(env["DARTSPICO_BRIDGE_LED_CHANNEL"], channel)
             self.assertEqual(env["RASPYDARTS_MQTT_HOST"], BROKER)
 
     def test_pico_mode_channels(self):
         # Canaux 0 à 2 acceptés, dans les deux sens ; autre valeur : pas de serveur
         done = self.run_blocks(self.patched, "pico", dict(LEDS_PICO, PIN_TARGETLED="2",
                                                           PIN_STRIPLED="0"))
-        channels = [k["env"]["RASPYDARTS_PICO_LED_CHANNEL"] for _, k in done["popen"]]
+        channels = [k["env"]["DARTSPICO_BRIDGE_LED_CHANNEL"] for _, k in done["popen"]]
         self.assertEqual(channels, ["0", "2"])
         done = self.run_blocks(self.patched, "pico", dict(LEDS_PICO, PIN_TARGETLED="3",
                                                           PIN_STRIPLED="x"))

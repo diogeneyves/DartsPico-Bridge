@@ -25,6 +25,8 @@
 
 set -eu
 
+# Note historique : a servi au commit initial 215eb9c, sous l'ancien nom ; script figé,
+# constantes inchangées (spécification, complément 84).
 ROOT=$(cd "$(dirname "$0")/.." && pwd -P)
 NAME="Gohy Yves"
 EMAIL="6154641+diogeneyves@users.noreply.github.com"

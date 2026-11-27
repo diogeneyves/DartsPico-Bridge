@@ -10,8 +10,8 @@
 #   affiche ce qui serait copié et écrit ;
 # - --apply : envoie une archive au Pi par « ssh -4 », puis, par « ssh -4 -t » et sudo (mot de
 #   passe tapé par l'auteur) :
-#     * code (pi/hwd, pi/dmd, shared, fichiers suivis par git) dans /opt/raspydarts-pico/,
-#       à root, dossiers 755, fichiers 644, et la révision dans /opt/raspydarts-pico/REVISION ;
+#     * code (pi/hwd, pi/dmd, shared, fichiers suivis par git) dans /opt/dartspico-bridge/,
+#       à root, dossiers 755, fichiers 644, et la révision dans /opt/dartspico-bridge/REVISION ;
 #       rien n'y est effacé (un fichier retiré du dépôt reste sur le Pi) ;
 #     * unités raspydarts-hwd.service et raspydarts-dmd.service dans /etc/systemd/system/, après
 #       remplissage de User=@RASPYDARTS_USER@ (--user) et de Group=@RASPYDARTS_GROUP@ (groupe
@@ -19,7 +19,7 @@
 #       écriture (utilisateur inconnu ou marqueur restant : rien n'est installé, complément 77) ;
 #     * /etc/raspydarts/hwd.toml et /etc/raspydarts/dmd.toml écrits depuis les exemples
 #       seulement s'ils n'existent pas (jamais écrasés) ;
-#     * règle udev pi/udev/73-raspydarts-pico.rules dans /etc/udev/rules.d/ (/dev/cible et
+#     * règle udev pi/udev/73-dartspico-bridge.rules dans /etc/udev/rules.d/ (/dev/cible et
 #       /dev/dmd, complément 62), marqueurs <SERIE_PICO> et <SERIE_I75W> remplis sur le Mac
 #       (--pico-serial, --i75w-serial ; complément 77), écrasée à chaque fois, puis udevadm control --reload ; le
 #       « udevadm trigger » reste à faire à la main (docs/PROCEDURE.md, § 2.6) ;
@@ -38,13 +38,13 @@ APPLY=0
 RUN_USER=""
 PICO_SERIAL=""
 I75W_SERIAL=""
-REMOTE_ARCHIVE="/tmp/raspydarts-pico-install.tgz"
-OPT_DIR="/opt/raspydarts-pico"
+REMOTE_ARCHIVE="/tmp/dartspico-bridge-install.tgz"
+OPT_DIR="/opt/dartspico-bridge"
 ETC_DIR="/etc/raspydarts"
 UNIT_DIR="/etc/systemd/system"
 UNITS=(raspydarts-hwd.service raspydarts-dmd.service)
 CODE_DIRS=(pi/hwd pi/dmd shared)
-UDEV_NAME="73-raspydarts-pico.rules"
+UDEV_NAME="73-dartspico-bridge.rules"
 UDEV_RULE="pi/udev/$UDEV_NAME"
 UDEV_DIR="/etc/udev/rules.d"
 
@@ -68,7 +68,7 @@ Installe hwd et le service de rendu du DMD sur le Pi, sans activer les unités.
 
 Numéros de série : « udevadm info -a -n /dev/ttyACMx » sur le Pi, ATTRS{serial}.
 
-Code dans /opt/raspydarts-pico, unités dans /etc/systemd/system, configurations
+Code dans /opt/dartspico-bridge, unités dans /etc/systemd/system, configurations
 /etc/raspydarts/hwd.toml et dmd.toml écrites depuis les exemples si elles manquent
 (jamais écrasées). Règle udev de /dev/cible et /dev/dmd dans /etc/udev/rules.d (écrasée),
 puis udevadm control --reload ; trigger à la main. Ni enable ni start : voir docs/PROCEDURE.md.

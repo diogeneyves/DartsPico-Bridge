@@ -21,7 +21,7 @@ Ce sont des fichiers **nouveaux** : les modifications des fichiers existants de 
 
 - Le dossier `shims/` est placé **en tête du chemin Python des serveurs LED seulement** (`addons/TargetLeds_Server.py`, `addons/StripLeds_Server.py`), par exemple avec `PYTHONPATH=…/shims`. Ainsi, `import rpi_ws281x` dans `addons/CStrip.py` charge le remplaçant, et `CStrip.py` reste inchangé.
 - **Le jeu (`raspydarts.py`) ne doit jamais avoir `shims/` dans son chemin.** Il n'utilise pas `rpi_ws281x`, et `cpico` ne l'importe pas. Le test `test_shim_import.py` vérifie ces deux points.
-- Chaque serveur LED reçoit son canal par la variable d'environnement **`RASPYDARTS_PICO_LED_CHANNEL`** : `0` pour la cible, `1` pour la bande, `2` pour la sortie de secours. Sans cette variable, l'argument `pin` est pris comme canal s'il vaut 0, 1 ou 2 ; sinon, l'ouverture est refusée.
+- Chaque serveur LED reçoit son canal par la variable d'environnement **`DARTSPICO_BRIDGE_LED_CHANNEL`** : `0` pour la cible, `1` pour la bande, `2` pour la sortie de secours. Sans cette variable, l'argument `pin` est pris comme canal s'il vaut 0, 1 ou 2 ; sinon, l'ouverture est refusée.
 - Variables facultatives : `RASPYDARTS_MQTT_HOST` (défaut `localhost`) et `RASPYDARTS_TOPIC_BASE` (défaut `raspydarts`).
 - La luminosité (`setBrightness`) n'est plus appliquée par le remplaçant (spécification v0.3.14, § 5.3) : il l'envoie par `LEDB <canal> <valeur>` sur `raspydarts/hw/cmd` (à `begin()` et à chaque changement) ; `hwd` la plafonne (`led_brightness`) et le Pico l'applique une seule fois, avec l'arrondi de `rpi_ws281x` : `(c × (b + 1)) >> 8`. L'ordre des couleurs (`strip_type`) est transmis à `hwd` par `SET led<n>_order` lors de `begin()`. Les images partent toujours en RVB.
 
