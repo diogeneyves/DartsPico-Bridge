@@ -70,6 +70,9 @@ remplissent les marqueurs des unités et de la règle udev. Lancé depuis le Mac
 tools/install_services.sh --user <utilisateur> --pico-serial <SERIE_PICO> --i75w-serial <SERIE_I75W>
 ```
 
+Pas d'option de désinstallation : retour arrière à la main, `docs/PROCEDURE.md` § 2.7
+(complément 86).
+
 ## GIF de test du DMD
 
 `make_test_gifs.py` (spécification § 9.9, 48e complément ; Pillow) : fabrique dans le dossier

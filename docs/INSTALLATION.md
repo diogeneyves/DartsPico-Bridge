@@ -497,6 +497,10 @@ un autre ordinateur, par un tunnel SSH vers le port 8081 du Pi.
 sudo systemctl enable raspydarts-hwd raspydarts-dmd
 ```
 
+**Retour arrière** (désinstallation, complément 86) : [`PROCEDURE.md`](PROCEDURE.md) § 2.7. Les
+configurations de `/etc/raspydarts/` y sont gardées par défaut ; la galerie et les règles udev du
+jeu ne sont jamais touchées.
+
 ## 10. Médias du DMD
 
 Spécification § 9.3 et § 9.9 (41e, 42e, 48e et 49e compléments) ; code : `pi/dmd/dmd_core.py`,

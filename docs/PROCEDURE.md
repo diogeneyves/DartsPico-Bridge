@@ -254,6 +254,101 @@ Puis relancer `tools/install_services.sh` avec ces valeurs, en recopiant la cass
 marqueurs. Le banc de la 75 W reçoit les mêmes séries par l'environnement (`PICO_SERIAL`,
 `I75W_SERIAL`, `tools/bench_i75w/PROCEDURE.md`).
 
+### 2.7 Retour arrière (désinstallation)
+
+Spécification, complément 86. Défait `tools/install_services.sh --apply` à la main : le script n'a
+pas d'option de désinstallation. Commandes lancées **sur le Mac** par l'auteur ; `sudo` demande le
+mot de passe du Pi s'il en exige un.
+
+**Jamais touchés** : la galerie (`raspydarts-gallery`, unité `--user` lancée par le jeu), les règles
+udev 71 et 72 du jeu, Mosquitto, les médias (`~/dmd-medias`) et le jeu. Les configurations de
+`/etc/raspydarts/` sont **gardées** : leur suppression est une étape à part, facultative (plus bas).
+Un `hwd` lancé à la main (`start_hwd.sh`) n'est pas arrêté par ces commandes.
+
+Arrêt des deux unités, et retrait des liens posés par l'`enable` du § 2.5 :
+
+```bash
+ssh -4 -t pi@raspydarts.local 'sudo systemctl disable --now raspydarts-hwd raspydarts-dmd'
+```
+
+Suppression des unités, de la règle udev et du code (tout `/opt/dartspico-bridge`, anciens
+fichiers compris : `--apply` n'y efface jamais rien) :
+
+```bash
+ssh -4 -t pi@raspydarts.local 'sudo rm -f /etc/systemd/system/raspydarts-hwd.service /etc/systemd/system/raspydarts-dmd.service /etc/udev/rules.d/73-dartspico-bridge.rules && sudo rm -rf /opt/dartspico-bridge'
+```
+
+Rechargement de systemd et d'udev :
+
+```bash
+ssh -4 -t pi@raspydarts.local 'sudo systemctl daemon-reload && sudo udevadm control --reload'
+```
+
+Facultatif : oublier un état « échec » resté en mémoire (`sudo systemctl reset-failed raspydarts-hwd raspydarts-dmd`).
+
+Installation antérieure au renommage (avant le commit `925c9da`) : supprimer aussi
+`/opt/raspydarts-pico` et `/etc/udev/rules.d/73-raspydarts-pico.rules`.
+
+#### Liens `/dev/cible` et `/dev/dmd`
+
+Après le rechargement, les deux liens restent tant qu'udev ne revoit pas les cartes. **Débrancher
+puis rebrancher les deux cartes, ou redémarrer le Pi.** Autre possibilité, *non essayée*, sur place
+seulement (comme au § 2.6) et `mpremote` fermé :
+
+```bash
+ssh -4 -t pi@raspydarts.local 'sudo udevadm trigger --subsystem-match=tty --action=change'
+```
+
+Contrôle (attendu : « No such file or directory » pour les deux) :
+
+```bash
+ssh -4 pi@raspydarts.local 'ls -l /dev/cible /dev/dmd'
+```
+
+#### Contrôle
+
+Attendu : « No such file or directory » pour chaque chemin. L'archive de `/tmp` ne reste que si la
+connexion a été coupée pendant `--apply` ; la supprimer alors (`sudo rm -f`, même chemin).
+
+```bash
+ssh -4 pi@raspydarts.local 'ls -ld /etc/systemd/system/raspydarts-hwd.service /etc/systemd/system/raspydarts-dmd.service /etc/udev/rules.d/73-dartspico-bridge.rules /opt/dartspico-bridge /tmp/dartspico-bridge-install.tgz'
+```
+
+Les deux unités nommées (un motif `raspydarts*` listerait aussi les unités du jeu) ; attendu :
+`0 unit files listed.` :
+
+```bash
+ssh -4 pi@raspydarts.local 'systemctl list-unit-files raspydarts-hwd.service raspydarts-dmd.service'
+```
+
+Aucun `hwd` ne doit tourner (attendu : rien ; les crochets évitent que `pgrep` se trouve lui-même) :
+
+```bash
+ssh -4 pi@raspydarts.local 'pgrep -af "[h]wd_daemon.py"'
+```
+
+#### Configurations : étape facultative
+
+À faire seulement pour retirer aussi les configurations. D'abord, **copie sur le Mac**, dans le
+dossier courant (les guillemets laissent l'étoile au Pi) :
+
+```bash
+scp -4 pi@raspydarts.local:'/etc/raspydarts/*.toml' .
+```
+
+Puis suppression des deux fichiers et du dossier :
+
+```bash
+ssh -4 -t pi@raspydarts.local 'sudo rm -f /etc/raspydarts/hwd.toml /etc/raspydarts/dmd.toml && sudo rmdir /etc/raspydarts'
+```
+
+`rmdir` **échoue si `/etc/raspydarts` n'est pas vide** (un fichier ajouté à la main, une
+sauvegarde) : c'est une protection voulue. Regarder alors ce qui reste avant de décider :
+
+```bash
+ssh -4 pi@raspydarts.local 'ls -la /etc/raspydarts'
+```
+
 ## 3. Écran HDMI dédié du DMD (à la place de la 75 W, ou avec elle)
 
 Spécification § 9.9, « Écran HDMI dédié » (complément 72). Le service de rendu affiche ses images
