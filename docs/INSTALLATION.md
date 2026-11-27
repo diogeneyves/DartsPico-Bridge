@@ -152,8 +152,18 @@ tools/apply_patches.sh <COPIE-RASPYDARTS>
 ```
 
 Attendu : `OK : 10 patch(s) appliqué(s) et fichiers nouveaux copiés dans …`. Rôle de chaque patch :
-[`pi/patches/README.md`](../pi/patches/README.md). Le patch 0010 (galerie en lecture seule) n'a encore
-jamais été installé sur un Pi : *non vérifié*.
+[`pi/patches/README.md`](../pi/patches/README.md). Patch 0010 (galerie en lecture seule) : essai du
+27/11/2026 sur le Pi de l'auteur, dans une copie d'essai du jeu (4.6.5 avec les patchs 0001 à 0010) :
+
+- installé par `git apply` ; les 13 fichiers sont identiques à ceux du commit `1751f35` ;
+- galerie lancée seule (pas par le jeu), sans mot de passe : page d'accueil en 200, bandeau « lecture
+  seule », aucun formulaire ni bouton de suppression (page lue par `curl` sur le Pi) ; vu par l'auteur
+  dans un navigateur, par tunnel SSH : bandeau « lecture seule », 3 parties d'essai, image affichée
+  dans une partie, aucun bouton ni case de suppression ;
+- `POST /delete-many` sans en-tête `Origin` : 403.
+
+*Non vérifié* : le lancement par le jeu (`systemd-run --user`), le cas avec mot de passe, l'accès
+depuis un téléphone.
 
 ## 5. Mosquitto et dépendances Python
 
