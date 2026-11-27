@@ -1,4 +1,4 @@
-From 7a5170e0edd59c6aed2aff7541ff9025238ea59c Mon Sep 17 00:00:00 2001
+From 75ec0e0ea3586f7a3352062914e39f4068817875 Mon Sep 17 00:00:00 2001
 From: Gohy Yves <6154641+diogeneyves@users.noreply.github.com>
 Date: Wed, 4 Nov 2026 12:06:28 +0100
 Subject: [PATCH] cconfig: add [SectionAdvanced] hardware key and Pico board
@@ -15,14 +15,14 @@ Only lines are added.
  1 file changed, 33 insertions(+)
 
 diff --git a/include/cconfig.py b/include/cconfig.py
-index 471f480..a974a54 100644
+index 471f480..982f1fc 100644
 --- a/include/cconfig.py
 +++ b/include/cconfig.py
 @@ -157,6 +157,8 @@ DefaultConfig['SectionAdvanced'] = {
      'victory-celebration-delay': 5000,
      'launch-game-celebration': False,
      'game-options-list':'',
-+    # Carte Pico (RaspyDarts-Pico) : pico ; sinon normal (include/craspberry.py)
++    # Carte Pico (DartsPico-Bridge) : pico ; sinon normal (include/craspberry.py)
 +    'hardware': 'normal',
      'richard-mode': False
      }
@@ -31,10 +31,10 @@ index 471f480..a974a54 100644
      'EXTENDED': EXTENDED_CONFIG
      }
  
-+# Carte Pico (RaspyDarts-Pico) : aucune broche GPIO du Pi, segments à étalonner (codes
++# Carte Pico (DartsPico-Bridge) : aucune broche GPIO du Pi, segments à étalonner (codes
 +# R<ligne>C<colonne>). [Raspberry] vient de include/cpico.py, lu par set_pico_card_config
 +PicoCardConfig = {
-+    'CARD_NAME': 'Carte Pico (RaspyDarts-Pico)',
++    'CARD_NAME': 'Carte Pico (DartsPico-Bridge)',
 +    'INPUT': {f'PIN_{pin}': '' for pin in range(1, 17)},
 +    'OUTPUT': {f'PIN_{pin}': '' for pin in range(1, 11)},
 +    'KEYS': {key: '' for key in DefaultConfig['SectionKeys']},
@@ -48,8 +48,8 @@ index 471f480..a974a54 100644
          self.conf += "### List of games for which options are saved\n"
          self.conf += f"game-options-list:{Advanced['game-options-list']}\n"
 +        if str(Advanced.get('hardware', 'normal')).strip().lower() != 'normal':
-+            # Carte Pico (RaspyDarts-Pico) : écrit seulement quand ce n'est pas le mode normal
-+            self.conf += "### Hardware : pico (RaspyDarts-Pico card) or normal\n"
++            # Carte Pico (DartsPico-Bridge) : écrit seulement quand ce n'est pas le mode normal
++            self.conf += "### Hardware : pico (DartsPico-Bridge card) or normal\n"
 +            self.conf += f"hardware:{Advanced['hardware']}\n"
          self.conf += "### For Richard's case\n"
          self.conf += f"richard-mode:{Advanced['richard-mode']}\n\n"
@@ -61,7 +61,7 @@ index 471f480..a974a54 100644
 +
 +    def set_pico_card_config(self):
 +        """
-+        Carte Pico (RaspyDarts-Pico) : la cible, les boutons, les Toys et les voyants sont sur la
++        Carte Pico (DartsPico-Bridge) : la cible, les boutons, les Toys et les voyants sont sur la
 +        carte Pico, reliée en USB ; aucune broche GPIO du Pi. Les segments sont à étalonner
 +        (codes R<ligne>C<colonne>). La correspondance des boutons vient de include/cpico.py
 +        """

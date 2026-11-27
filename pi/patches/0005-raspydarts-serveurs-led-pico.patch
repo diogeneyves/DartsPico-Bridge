@@ -1,4 +1,4 @@
-From ca25a16c9ab9e16f86459d72beae90538fff4b5c Mon Sep 17 00:00:00 2001
+From 787d222ce4c5841b7ec6776e1228a6353d33d7b1 Mon Sep 17 00:00:00 2001
 From: Gohy Yves <6154641+diogeneyves@users.noreply.github.com>
 Date: Thu, 19 Nov 2026 20:52:36 +0100
 Subject: [PATCH] raspydarts: start the LED servers in Pico board mode
@@ -6,7 +6,7 @@ Subject: [PATCH] raspydarts: start the LED servers in Pico board mode
 In Pico mode ([SectionAdvanced] hardware = pico), PIN_TARGETLED and PIN_STRIPLED
 are board channels (0 to 2; target 0, strip 1): StripLeds and TargetLeds
 subscribers, servers started without sudo by include/cpico.py (pico_shims/ first
-in PYTHONPATH, channel in RASPYDARTS_PICO_LED_CHANNEL, dummy pin 18, colour
+in PYTHONPATH, channel in DARTSPICO_BRIDGE_LED_CHANNEL, dummy pin 18, colour
 order in -type). Strip with 0 LEDs: no server. Pi pins (10, 12, 18, 21) and normal
 mode: original start-up, unchanged.
 

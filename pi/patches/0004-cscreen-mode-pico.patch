@@ -1,4 +1,4 @@
-From da427e32218512bfe3bc7962bcdcf3a05adca746 Mon Sep 17 00:00:00 2001
+From 656616adb78fb12f315439b407a2342cbd4ba66d Mon Sep 17 00:00:00 2001
 From: Gohy Yves <6154641+diogeneyves@users.noreply.github.com>
 Date: Thu, 19 Nov 2026 21:00:36 +0100
 Subject: [PATCH] cscreen: adapt the game screens to Pico board mode
@@ -36,7 +36,7 @@ Co-Authored-By: Claude Opus 5.5 <noreply@anthropic.com>
  1 file changed, 183 insertions(+), 10 deletions(-)
 
 diff --git a/include/cscreen.py b/include/cscreen.py
-index 2164b0a..80a1186 100644
+index 2164b0a..23e455b 100644
 --- a/include/cscreen.py
 +++ b/include/cscreen.py
 @@ -1320,12 +1320,31 @@ class Screen(pygame.Surface):
@@ -53,7 +53,7 @@ index 2164b0a..80a1186 100644
 +
 +    def pico_text(self, key, default):
 +        '''
-+        Texte du mode carte Pico (RaspyDarts-Pico, patch 0004) : la traduction de key si les
++        Texte du mode carte Pico (DartsPico-Bridge, patch 0004) : la traduction de key si les
 +        fichiers de langue la connaissent (clés du patch 0009), sinon default (en français).
 +        Un texte à trous ({button}, {device}) : .replace après la traduction, comme l'original
 +        '''

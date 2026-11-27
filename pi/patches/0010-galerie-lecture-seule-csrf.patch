@@ -1,4 +1,4 @@
-From 1751f35cc2dab39c87c0ca39896df5a1b58c56b8 Mon Sep 17 00:00:00 2001
+From e2c7353aeae10e760dc4cb836dcc31b8d7277734 Mon Sep 17 00:00:00 2001
 From: Gohy Yves <6154641+diogeneyves@users.noreply.github.com>
 Date: Thu, 26 Nov 2026 11:18:40 +0100
 Subject: [PATCH] Gallery: make read-only without a password, check origin on
@@ -170,7 +170,7 @@ z3a&+&d3mWtrFrS8c?vm)w-qO6O!xcF_|gHYK2ISfGqpIC2yH<98m^gn#U-gZIY8s4
 R7yn>XX4Kri;0NO(KLB-MO5^|l
 
 diff --git a/locales/de_DE/LC_MESSAGES/pydarts.po b/locales/de_DE/LC_MESSAGES/pydarts.po
-index 262b59c..cad50db 100644
+index 404397a..34d9d30 100644
 --- a/locales/de_DE/LC_MESSAGES/pydarts.po
 +++ b/locales/de_DE/LC_MESSAGES/pydarts.po
 @@ -812,7 +812,7 @@ msgid "gallery-scan"
@@ -299,7 +299,7 @@ z^QYI-lS<1=XO*U>mrk#&Dl46t&Y4*{YgSps<aEiLlCtuW3FW2fvWoQdl8IBwm|*9|
 b^x%^6^3tk#>7CnnsA6`z>Mgmc$NT>uXA;Zd
 
 diff --git a/locales/en_GB/LC_MESSAGES/pydarts.po b/locales/en_GB/LC_MESSAGES/pydarts.po
-index 2175d58..e54c860 100644
+index 88255fc..94f7574 100644
 --- a/locales/en_GB/LC_MESSAGES/pydarts.po
 +++ b/locales/en_GB/LC_MESSAGES/pydarts.po
 @@ -812,7 +812,7 @@ msgid "gallery-scan"
@@ -430,7 +430,7 @@ znyy}4Q`apoRX=Cq|NJOZv+VzUMsM?%XO>nju1R;VSg^ciSteasRkLLAqN*#ZGq=xg
 Qkm{b(qwc;2sdkh83r?4B)&Kwi
 
 diff --git a/locales/es_ES/LC_MESSAGES/pydarts.po b/locales/es_ES/LC_MESSAGES/pydarts.po
-index c0f93a6..652dbe3 100644
+index f2865fb..c223e2d 100644
 --- a/locales/es_ES/LC_MESSAGES/pydarts.po
 +++ b/locales/es_ES/LC_MESSAGES/pydarts.po
 @@ -812,7 +812,7 @@ msgid "gallery-scan"
@@ -561,7 +561,7 @@ zL1A{TUvC1wKz?zFKQFs5@WT1N?%nCXa?H$MH>R&AGcU}^SolKcXt!s*UbXx`>;BaL
 E1Gt>;w*UYD
 
 diff --git a/locales/fr_FR/LC_MESSAGES/pydarts.po b/locales/fr_FR/LC_MESSAGES/pydarts.po
-index 8d18c3a..8b42519 100644
+index 49f415c..d3a23ae 100644
 --- a/locales/fr_FR/LC_MESSAGES/pydarts.po
 +++ b/locales/fr_FR/LC_MESSAGES/pydarts.po
 @@ -812,7 +812,7 @@ msgid "gallery-scan"
@@ -690,7 +690,7 @@ zZsyDiPpx;J*E75B&>oL>X4R~!>WW&gr^-`XRasLzwW?vPdolZeUhweV+<E`!B~M({
 btl2d@wy3J6+S};$b7TGDn>YHo?MnX(_L5LS
 
 diff --git a/locales/it_IT/LC_MESSAGES/pydarts.po b/locales/it_IT/LC_MESSAGES/pydarts.po
-index f112b3e..767c396 100644
+index 8c16a01..60e8bb7 100644
 --- a/locales/it_IT/LC_MESSAGES/pydarts.po
 +++ b/locales/it_IT/LC_MESSAGES/pydarts.po
 @@ -812,7 +812,7 @@ msgid "gallery-scan"
@@ -820,7 +820,7 @@ z*PHiTy?M3zKATsbnVVUd$yB7TTaccYsZ3X7DsRdxye56ktP1)I%PT7UM_H!gxvN^H
 zn${}*-|y#^|DW&EH)a;zRDQLiSEM_ZS1hW`Tzf4eJy?^Iy0BK>bNt`ZeI@?|X4Rb}
 
 diff --git a/locales/nl_NL/LC_MESSAGES/pydarts.po b/locales/nl_NL/LC_MESSAGES/pydarts.po
-index 0b5bd24..eafc9d5 100644
+index e7174df..b535153 100644
 --- a/locales/nl_NL/LC_MESSAGES/pydarts.po
 +++ b/locales/nl_NL/LC_MESSAGES/pydarts.po
 @@ -812,7 +812,7 @@ msgid "gallery-scan"

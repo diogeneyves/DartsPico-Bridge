@@ -1,4 +1,4 @@
-From 56ddf18f66e5c09fa2a2d3038a1e668573e3da8f Mon Sep 17 00:00:00 2001
+From 165980df11d1ef318ce3f579e2805029d4c1fd18 Mon Sep 17 00:00:00 2001
 From: Gohy Yves <6154641+diogeneyves@users.noreply.github.com>
 Date: Sun, 22 Nov 2026 08:03:20 +0100
 Subject: [PATCH] Updates: disable them in Pico board mode
@@ -22,14 +22,14 @@ In normal mode, behaviour identical to the original.
  3 files changed, 41 insertions(+), 3 deletions(-)
 
 diff --git a/include/cdmdmenu.py b/include/cdmdmenu.py
-index 3f372b5..a06a720 100644
+index 3f372b5..79eaf43 100644
 --- a/include/cdmdmenu.py
 +++ b/include/cdmdmenu.py
 @@ -24,6 +24,22 @@ def translate(screen, key):
      return screen.lang.translate(key)
  
  
-+# Mode carte Pico (RaspyDarts-Pico, patch 0007) : l'Interstate 75 W remplace Raspy2DMD ; ses
++# Mode carte Pico (DartsPico-Bridge, patch 0007) : l'Interstate 75 W remplace Raspy2DMD ; ses
 +# boutons d'installation (script téléchargé et lancé en root), de démarrage, de mise à jour et
 +# de suppression sont masqués. Le reste du menu ne change pas
 +PICO_HIDDEN_COMMANDS = ('install', 'start', 'update', 'uninstall')
@@ -68,7 +68,7 @@ index 3f372b5..a06a720 100644
              kind, ident = entries[selected][0], entries[selected][1]
              if kind == 'back':
 diff --git a/include/cscreen.py b/include/cscreen.py
-index 80a1186..19ccb72 100644
+index 23e455b..39860f8 100644
 --- a/include/cscreen.py
 +++ b/include/cscreen.py
 @@ -6572,6 +6572,15 @@ class Screen(pygame.Surface):
@@ -76,7 +76,7 @@ index 80a1186..19ccb72 100644
                  return menus.result(button)
  
 +            if self.pico_mode():
-+                # Mode carte Pico (RaspyDarts-Pico, patch 0007) : une mise à jour écraserait les
++                # Mode carte Pico (DartsPico-Bridge, patch 0007) : une mise à jour écraserait les
 +                # fichiers modifiés par les patchs ; aucune demande à GitHub
 +                self.logs.info("Update : not checked in Pico card mode (patch 0007)")
 +                self.update_screen(self.message([self.pico_text('pico-update-disabled',
@@ -88,7 +88,7 @@ index 80a1186..19ccb72 100644
              try:
                  if self.update_mode() == 'ask':
 diff --git a/raspydarts.py b/raspydarts.py
-index d700097..de0a2b6 100644
+index 2d76f68..664c7db 100644
 --- a/raspydarts.py
 +++ b/raspydarts.py
 @@ -415,7 +415,17 @@ def update_progress(key, unit=''):
@@ -96,7 +96,7 @@ index d700097..de0a2b6 100644
  # An update downloaded in the background (Mise à jour prête : Demander) : installed now,
  # before the game loads anything, then the game started again
 -pending_update = cupdate.load_pending(logs, version)
-+# Mode carte Pico (RaspyDarts-Pico, patch 0007) : ni installation en attente, ni vérification
++# Mode carte Pico (DartsPico-Bridge, patch 0007) : ni installation en attente, ni vérification
 +# (une mise à jour écraserait les fichiers modifiés par les patchs)
 +from include import ci2c as ci2c_update
 +pico_no_update = ci2c_update.pico_mode(Config)

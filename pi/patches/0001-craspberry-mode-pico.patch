@@ -1,4 +1,4 @@
-From 88461bf435a2c7e67945f1de9086d6c417f74056 Mon Sep 17 00:00:00 2001
+From b11452c57e7f26adc0acdf275980db12d2299639 Mon Sep 17 00:00:00 2001
 From: Gohy Yves <6154641+diogeneyves@users.noreply.github.com>
 Date: Wed, 4 Nov 2026 11:29:53 +0100
 Subject: [PATCH] craspberry: add Pico board mode ([SectionAdvanced] hardware =
@@ -7,7 +7,7 @@ MIME-Version: 1.0
 Content-Type: text/plain; charset=UTF-8
 Content-Transfer-Encoding: 8bit
 
-In Pico mode (RaspyDarts-Pico): no call to the Pi GPIOs (old target pins
+In Pico mode (DartsPico-Bridge): no call to the Pi GPIOs (old target pins
 and GPIO buttons ignored, no setmode, no reset_gpio, no ctarget_reader);
 buttons, Toys, lights and target through include/cpico.py (PicoExtender,
 PicoTargetSource); cgpio_extender not imported; gpio_flush sends OFF; no
@@ -25,7 +25,7 @@ from 4.6.5 kept, combined with the PICO guard).
  1 file changed, 100 insertions(+), 12 deletions(-)
 
 diff --git a/include/craspberry.py b/include/craspberry.py
-index 0e2667f..25715d9 100644
+index 0e2667f..96ff38f 100644
 --- a/include/craspberry.py
 +++ b/include/craspberry.py
 @@ -19,7 +19,65 @@ if cplatform.has_gpio():
@@ -37,7 +37,7 @@ index 0e2667f..25715d9 100644
 +
 +def read_hardware_mode(path=None, blinka=None):
 +    '''
-+    Mode carte Pico (RaspyDarts-Pico) : [SectionAdvanced] hardware = pico. Lu dans le fichier
++    Mode carte Pico (DartsPico-Bridge) : [SectionAdvanced] hardware = pico. Lu dans le fichier
 +    lui-même (la clé n'est pas encore connue de cconfig), avec les options de cconfig.py.
 +    Renvoie (mode, avertissement) : 'pico' ou 'normal' ; l'avertissement (sinon None) quand une
 +    ligne hardware existe mais n'est pas lisible ou a une valeur inconnue : le mode reste normal.

@@ -1,4 +1,4 @@
-From 85af54b01c7facaafc0ac343a827a5b1513ed4d1 Mon Sep 17 00:00:00 2001
+From 0fd92bdb55a6a36b76e7742cd4d38a2832e8090c Mon Sep 17 00:00:00 2001
 From: Gohy Yves <6154641+diogeneyves@users.noreply.github.com>
 Date: Wed, 18 Nov 2026 18:44:30 +0100
 Subject: [PATCH] ci2c: do nothing in Pico board mode ([SectionAdvanced]

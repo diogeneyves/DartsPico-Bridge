@@ -1,4 +1,4 @@
-From 8403b030ce62e2f27a007af0fed8d557d97aa2b5 Mon Sep 17 00:00:00 2001
+From c8507d9b705d2b402ca6454b40a6b998dc361373 Mon Sep 17 00:00:00 2001
 From: Gohy Yves <6154641+diogeneyves@users.noreply.github.com>
 Date: Sun, 22 Nov 2026 15:16:54 +0100
 Subject: [PATCH] Translations: add the Pico board mode texts in the 6
@@ -6,7 +6,7 @@ Subject: [PATCH] Translations: add the Pico board mode texts in the 6
 
 Keys of the texts shown by patches 0004 and 0007 (pico_text) added at the end
 of the language files (de_DE, en_GB, es_ES, fr_FR, it_IT, nl_NL), section
-"RASPYDARTS-PICO : CARTE PICO": card-pico, pico-ring-204, pico-ring-244-before,
+"DARTSPICO-BRIDGE : CARTE PICO": card-pico, pico-ring-204, pico-ring-244-before,
 pico-ring-244-after, pico-ring-none, pico-ring-question, pico-not-detected
 ({device}), pico-absent, pico-button-banned ({button}), pico-button-leds-sub,
 pico-no-coins, pico-update-disabled. .mo files recompiled with msgfmt.
@@ -669,7 +669,7 @@ zZu(mBtq}n>p@@e<tu2EJ@Vw($Z4*~wa69BbkdwhtJTrL0+9LFCO*l*cKkN4-X7vag
 irjL!5b;GJ{!Pz%-dwlNh7XE7+<!Wz<l`1G_+W!HGL+^S3
 
 diff --git a/locales/de_DE/LC_MESSAGES/pydarts.po b/locales/de_DE/LC_MESSAGES/pydarts.po
-index c909187..262b59c 100644
+index c909187..404397a 100644
 --- a/locales/de_DE/LC_MESSAGES/pydarts.po
 +++ b/locales/de_DE/LC_MESSAGES/pydarts.po
 @@ -6528,3 +6528,41 @@ msgstr "Dieses Thema wurde mit RaspyDarts {version} erstellt. Trotzdem herunterl
@@ -677,7 +677,7 @@ index c909187..262b59c 100644
  msgid "hub-needs-version-explain"
  msgstr "Dieses Gerät hat eine ältere Version: einige Einstellungen des Themas werden eventuell nicht angezeigt. Eine Aktualisierung von RaspyDarts behebt das."
 +
-+######## RASPYDARTS-PICO : CARTE PICO ######
++######## DARTSPICO-BRIDGE : CARTE PICO ######
 +
 +msgid "card-pico"
 +msgstr "Pico-Karte"
@@ -1388,7 +1388,7 @@ z(N%<t1Csks6vishUXWx5L1xmz(DY=ZfKiNH#P0!peYWVS4&PbKP?8SAKC<OYSQo`;
 zgdkc+3|}DkAb82Jn}eqPnRD~aBVn=*UGZ-Fig&&r<86-@Ehs^m?fgac<4OMyVy51M
 
 diff --git a/locales/en_GB/LC_MESSAGES/pydarts.po b/locales/en_GB/LC_MESSAGES/pydarts.po
-index ac2dbc4..2175d58 100644
+index ac2dbc4..88255fc 100644
 --- a/locales/en_GB/LC_MESSAGES/pydarts.po
 +++ b/locales/en_GB/LC_MESSAGES/pydarts.po
 @@ -6800,3 +6800,41 @@ msgstr "This theme was made with RaspyDarts {version}. Download it anyway?"
@@ -1396,7 +1396,7 @@ index ac2dbc4..2175d58 100644
  msgid "hub-needs-version-explain"
  msgstr "This machine has an older version: some settings of the theme may not show. Updating RaspyDarts solves it."
 +
-+######## RASPYDARTS-PICO : CARTE PICO ######
++######## DARTSPICO-BRIDGE : CARTE PICO ######
 +
 +msgid "card-pico"
 +msgstr "Pico card"
@@ -2078,7 +2078,7 @@ z+$(M1N_1{Vek=KuIFfrRclfoC@;8<_L;62U_aJ7C$m^zzj+uSkiY*axuIu{n>hnzv
 QulOd{*)%+NP|5WF1DcWP8vp<R
 
 diff --git a/locales/es_ES/LC_MESSAGES/pydarts.po b/locales/es_ES/LC_MESSAGES/pydarts.po
-index 31cc2c1..c0f93a6 100644
+index 31cc2c1..f2865fb 100644
 --- a/locales/es_ES/LC_MESSAGES/pydarts.po
 +++ b/locales/es_ES/LC_MESSAGES/pydarts.po
 @@ -6533,3 +6533,41 @@ msgstr "Este tema se hizo con RaspyDarts {version}. ¿Descargarlo de todos modos
@@ -2086,7 +2086,7 @@ index 31cc2c1..c0f93a6 100644
  msgid "hub-needs-version-explain"
  msgstr "Esta máquina tiene una versión más antigua: algunos ajustes del tema pueden no mostrarse. Actualizar RaspyDarts lo soluciona."
 +
-+######## RASPYDARTS-PICO : CARTE PICO ######
++######## DARTSPICO-BRIDGE : CARTE PICO ######
 +
 +msgid "card-pico"
 +msgstr "Tarjeta Pico"
@@ -2758,7 +2758,7 @@ zdGdd9mn6T`f-U_2b5}R78$oq7p=~LGU#3kj?)Kz6lJCqtj&xmaB5xaYCEJ=M>w|L*
 h>2iBRm)pLSsW(gr4l2}OYWVj-DL1rl60|Vm{{U@ZK6C&8
 
 diff --git a/locales/fr_FR/LC_MESSAGES/pydarts.po b/locales/fr_FR/LC_MESSAGES/pydarts.po
-index c528a2e..8d18c3a 100644
+index c528a2e..49f415c 100644
 --- a/locales/fr_FR/LC_MESSAGES/pydarts.po
 +++ b/locales/fr_FR/LC_MESSAGES/pydarts.po
 @@ -6604,3 +6604,41 @@ msgstr "Ce thème a été fait avec RaspyDarts {version}. Le télécharger quand
@@ -2766,7 +2766,7 @@ index c528a2e..8d18c3a 100644
  msgid "hub-needs-version-explain"
  msgstr "Cette borne a une version plus ancienne : certains réglages du thème peuvent ne pas s'afficher. Une mise à jour de RaspyDarts règle cela."
 +
-+######## RASPYDARTS-PICO : CARTE PICO ######
++######## DARTSPICO-BRIDGE : CARTE PICO ######
 +
 +msgid "card-pico"
 +msgstr "Carte Pico"
@@ -3455,7 +3455,7 @@ z^P&DuTWH1~=_kNBF*b!5-;cfz?HckE+8^|Pqh%wRkWAbS+uq1&;EyMqEh;4XPAH4%
 yuM(ypSStcV4zaQIm~WXjcH9*r^TyoI|9rUR!v$ZTDpT*34T`%Ze!8HM$^Rb|&M@-;
 
 diff --git a/locales/it_IT/LC_MESSAGES/pydarts.po b/locales/it_IT/LC_MESSAGES/pydarts.po
-index 16c276e..f112b3e 100644
+index 16c276e..8c16a01 100644
 --- a/locales/it_IT/LC_MESSAGES/pydarts.po
 +++ b/locales/it_IT/LC_MESSAGES/pydarts.po
 @@ -6595,3 +6595,41 @@ msgstr "Questo tema è stato creato con RaspyDarts {version}. Scaricarlo comunqu
@@ -3463,7 +3463,7 @@ index 16c276e..f112b3e 100644
  msgid "hub-needs-version-explain"
  msgstr "Questa macchina ha una versione più vecchia: alcune impostazioni del tema potrebbero non apparire. Aggiornare RaspyDarts risolve il problema."
 +
-+######## RASPYDARTS-PICO : CARTE PICO ######
++######## DARTSPICO-BRIDGE : CARTE PICO ######
 +
 +msgid "card-pico"
 +msgstr "Scheda Pico"
@@ -4135,7 +4135,7 @@ zH?Ippbv2@Gae`l?O%LvN<U5e>$o&)P+T29mIre(^hGm;0WFOY)-j+`Hd?|ysOnv2x
 NQfo`>@<Fpx{~vSrdH4VT
 
 diff --git a/locales/nl_NL/LC_MESSAGES/pydarts.po b/locales/nl_NL/LC_MESSAGES/pydarts.po
-index da2cdc5..0b5bd24 100644
+index da2cdc5..e7174df 100644
 --- a/locales/nl_NL/LC_MESSAGES/pydarts.po
 +++ b/locales/nl_NL/LC_MESSAGES/pydarts.po
 @@ -6582,3 +6582,41 @@ msgstr "Dit thema is gemaakt met RaspyDarts {version}. Toch downloaden?"
@@ -4143,7 +4143,7 @@ index da2cdc5..0b5bd24 100644
  msgid "hub-needs-version-explain"
  msgstr "Deze kast heeft een oudere versie: sommige instellingen van het thema worden misschien niet getoond. RaspyDarts bijwerken lost dat op."
 +
-+######## RASPYDARTS-PICO : CARTE PICO ######
++######## DARTSPICO-BRIDGE : CARTE PICO ######
 +
 +msgid "card-pico"
 +msgstr "Pico-kaart"

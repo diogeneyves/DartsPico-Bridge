@@ -1,4 +1,4 @@
-From adaa320fa30f8e0d8f6096ba3a4bb5004e4a35c0 Mon Sep 17 00:00:00 2001
+From f3d71bed6464bde2ae7afaee1c0c1cec626c2e86 Mon Sep 17 00:00:00 2001
 From: Gohy Yves <6154641+diogeneyves@users.noreply.github.com>
 Date: Thu, 19 Nov 2026 19:48:21 +0100
 Subject: [PATCH] Statistics: add [SectionAdvanced] send-stats option (True by
@@ -15,32 +15,32 @@ disabled: the default file stays identical. Only lines are added.
  3 files changed, 28 insertions(+)
 
 diff --git a/include/cconfig.py b/include/cconfig.py
-index a974a54..7fa3b61 100644
+index 982f1fc..ba6e004 100644
 --- a/include/cconfig.py
 +++ b/include/cconfig.py
 @@ -159,6 +159,9 @@ DefaultConfig['SectionAdvanced'] = {
      'game-options-list':'',
-     # Carte Pico (RaspyDarts-Pico) : pico ; sinon normal (include/craspberry.py)
+     # Carte Pico (DartsPico-Bridge) : pico ; sinon normal (include/craspberry.py)
      'hardware': 'normal',
 +    # Statistiques de partie envoyées à raspystats.raspyhub.fr (include/cupdate.py, send_infos) :
-+    # True par défaut, comme l'original ; False : aucun envoi (RaspyDarts-Pico, patch 0006)
++    # True par défaut, comme l'original ; False : aucun envoi (DartsPico-Bridge, patch 0006)
 +    'send-stats': True,
      'richard-mode': False
      }
  #
 @@ -1507,6 +1510,10 @@ class Config:
-             # Carte Pico (RaspyDarts-Pico) : écrit seulement quand ce n'est pas le mode normal
-             self.conf += "### Hardware : pico (RaspyDarts-Pico card) or normal\n"
+             # Carte Pico (DartsPico-Bridge) : écrit seulement quand ce n'est pas le mode normal
+             self.conf += "### Hardware : pico (DartsPico-Bridge card) or normal\n"
              self.conf += f"hardware:{Advanced['hardware']}\n"
 +        if str(Advanced.get('send-stats', True)).strip().lower() in ('false', '0', 'no', 'non', 'off', 'n'):
-+            # Envoi des statistiques coupé (RaspyDarts-Pico, patch 0006) : écrit seulement dans ce cas
++            # Envoi des statistiques coupé (DartsPico-Bridge, patch 0006) : écrit seulement dans ce cas
 +            self.conf += "### Statistics of the games sent to raspystats.raspyhub.fr : True or False\n"
 +            self.conf += f"send-stats:{Advanced['send-stats']}\n"
          self.conf += "### For Richard's case\n"
          self.conf += f"richard-mode:{Advanced['richard-mode']}\n\n"
  
 diff --git a/include/cupdate.py b/include/cupdate.py
-index 5096d1b..a7bffc2 100644
+index 5096d1b..38ba1d1 100644
 --- a/include/cupdate.py
 +++ b/include/cupdate.py
 @@ -450,6 +450,21 @@ STATS_URLS = ('https://raspystats.raspyhub.fr/api/v1/raspydarts/plays',
@@ -48,7 +48,7 @@ index 5096d1b..a7bffc2 100644
  STATS_API_KEY = 'raspydarts_stats_2026'
  STATS_TIMEOUT = 5
 +# Envoi des statistiques : [SectionAdvanced] send-stats, lue au démarrage par raspydarts.py
-+# (RaspyDarts-Pico, patch 0006). Activé par défaut, comme l'original
++# (DartsPico-Bridge, patch 0006). Activé par défaut, comme l'original
 +SEND_STATS = True
 +STATS_OFF_VALUES = ('false', '0', 'no', 'non', 'off', 'n')
 +
@@ -77,14 +77,14 @@ index 5096d1b..a7bffc2 100644
      data = {'machine_id': machine_id(),
              'play_id': str(play_id),
 diff --git a/raspydarts.py b/raspydarts.py
-index 5c506ee..d700097 100644
+index 5c506ee..2d76f68 100644
 --- a/raspydarts.py
 +++ b/raspydarts.py
 @@ -387,6 +387,8 @@ game_type = None
  display.init_colorset()
  
  version = cupdate.get_version(logs)
-+# Statistiques de partie : envoyées ou non selon [SectionAdvanced] send-stats (RaspyDarts-Pico)
++# Statistiques de partie : envoyées ou non selon [SectionAdvanced] send-stats (DartsPico-Bridge)
 +cupdate.set_send_stats(config_advanced.get('send-stats', True))
  # After an update (the game restarted) : the settings of the system of the new version
  cupdate.apply_system_settings(logs, version)

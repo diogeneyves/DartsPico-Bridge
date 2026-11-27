@@ -1,4 +1,4 @@
-From 96b074aff87b8bbd291ce20952bcdb1b531c405d Mon Sep 17 00:00:00 2001
+From 8420065625a9440ab0954252d14c925eb4abd77f Mon Sep 17 00:00:00 2001
 From: Gohy Yves <6154641+diogeneyves@users.noreply.github.com>
 Date: Sun, 22 Nov 2026 10:55:31 +0100
 Subject: [PATCH] System settings: skip them in Pico board mode
@@ -13,15 +13,15 @@ In normal mode, behaviour identical to the original.
  1 file changed, 7 insertions(+), 1 deletion(-)
 
 diff --git a/raspydarts.py b/raspydarts.py
-index de0a2b6..610a966 100644
+index 664c7db..e214cc2 100644
 --- a/raspydarts.py
 +++ b/raspydarts.py
 @@ -390,7 +390,13 @@ version = cupdate.get_version(logs)
- # Statistiques de partie : envoyées ou non selon [SectionAdvanced] send-stats (RaspyDarts-Pico)
+ # Statistiques de partie : envoyées ou non selon [SectionAdvanced] send-stats (DartsPico-Bridge)
  cupdate.set_send_stats(config_advanced.get('send-stats', True))
  # After an update (the game restarted) : the settings of the system of the new version
 -cupdate.apply_system_settings(logs, version)
-+# Mode carte Pico (RaspyDarts-Pico, patch 0008) : jamais appliqués (scripts/reglages_systeme.sh
++# Mode carte Pico (DartsPico-Bridge, patch 0008) : jamais appliqués (scripts/reglages_systeme.sh
 +# ouvrirait mosquitto au réseau et le relancerait, coupant la liaison de hwd)
 +from include import ci2c as ci2c_settings
 +if ci2c_settings.pico_mode(Config):

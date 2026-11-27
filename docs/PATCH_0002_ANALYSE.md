@@ -105,7 +105,7 @@ Plutôt que du code spécial dispersé, je propose un préréglage comme les aut
 
 ```python
 PicoCardConfig = {
-    'CARD_NAME': 'Carte Pico (RaspyDarts-Pico)',
+    'CARD_NAME': 'Carte Pico (DartsPico-Bridge)',
     'INPUT':  {f'PIN_{n}': '' for n in range(1, 17)},       # aucune broche GPIO
     'OUTPUT': {f'PIN_{n}': '' for n in range(1, 11)},
     'KEYS':   {k: '' for k in DefaultConfig['SectionKeys']}, # étalonnage à refaire (codes R<l>C<c>)
@@ -127,7 +127,7 @@ def set_pico_card_config(self):
 
 | Écran | Aujourd'hui | Avec le préréglage |
 |---|---|---|
-| Assistant du premier démarrage, et après Paramétrage > Réinitialiser (`CS:1146-1187`) | 9 choix de carte | Un choix de plus, « Carte Pico (RaspyDarts-Pico) », qui appelle `set_pico_card_config` et saute les étapes de broches GPIO et de LED de la cible |
+| Assistant du premier démarrage, et après Paramétrage > Réinitialiser (`CS:1146-1187`) | 9 choix de carte | Un choix de plus, « Carte Pico (DartsPico-Bridge) », qui appelle `set_pico_card_config` et saute les étapes de broches GPIO et de LED de la cible |
 | Étalonnage proposé au démarrage (`R:500-506`, `CS:1073-1081`) | Si la cible est sur les GPIO et qu'aucun segment n'est connu | **À adapter** : `calibration_needed` teste `rpi.inputs` et `rpi.outputs`, vides en mode Pico ; sans adaptation, l'étalonnage ne serait jamais proposé |
 | Paramétrage > Boutons (`CS:5795-5830`) | Broches `A0`…`D7` | À adapter (D5) : `BTN1`…`BTN15`, `T1`…`T8`, `V1`…`V12` |
 | Paramétrage > Tester les Toys (`CS:5941-6006`) | Valeurs `C0`… | Affiche `T1`, `V1`…, sans autre changement |
