@@ -33,7 +33,7 @@ FILES = {
     "Gifs/r.cfg": False,
     "Scores/journal.log": False,
     "Fonts/followers.json": False,
-    "Gifs/Raspy2DMD_20260605_173151.gif": False,
+    "Gifs/capture_20260605_173151.gif": False,
     "Gifs/capture-2026-10-07.png": False,
     "Gifs/c20261008.png": False,
     "Sounds/s.ogg": False,
