@@ -46,6 +46,7 @@ Valeurs à remplacer par les vôtres :
 11. Premier démarrage du jeu en mode Pico
 12. Mise en service des cartes
 13. Écran HDMI dédié (facultatif)
+14. Mise à jour
 
 ---
 
@@ -109,7 +110,7 @@ décrit pas. Ce que la spécification en dit :
 **[REPORTÉ]** Le fork public `DartsPico-Bridge-game` (`8fa61ff`, patchs 0001 à 0010 et fichiers nouveaux
 déjà appliqués, spécification, complément 78) remplacera ces étapes. Il est reporté jusqu'à ce que la carte
 Pico soit assemblée et le § 11.2 de la spécification passé au moins jusqu'au point 6 (cible) : sans la carte
-Pico, le jeu patché n'est pas exploitable (spécification, complément 85). Le fork n'existe pas sur GitHub. Mise à jour du jeu installé : non décidée (spécification § 12, point 25).
+Pico, le jeu patché n'est pas exploitable (spécification, complément 85). Le fork n'existe pas sur GitHub. Mise à jour du jeu installé : à la main, section 14 (spécification § 12, point 25, complément 88).
 
 ## 4. Ce dépôt et les patchs du mode Pico
 
@@ -585,3 +586,282 @@ Le service de rendu peut afficher le DMD en plein écran sur un écran branché 
    ```
 
 3. Journal attendu : `HDMI screen output on (HDMI-A-2)`, puis `full screen on HDMI-A-2`.
+
+## 14. Mise à jour
+
+Spécification § 12, point 25 (complément 88). Une installation en service se met à jour **à la
+main**, élément par élément : code du Pi, patchs du jeu, firmware du Pico, firmware de
+l'Interstate 75 W, médias du DMD. Aucun mécanisme automatique (toujours ouvert au point 25, à
+reprendre avec le fork) ; en mode Pico, le bouton « Vérifier les mises à jour » du jeu reste
+désactivé (patch 0007, spécification § 9.8). **Rien de cette section n'a encore été fait sur le
+vrai Pi : tout y est *non vérifié*.**
+
+### 14.1 Règle : un ensemble cohérent
+
+- Un **ensemble cohérent** est formé du code de `/opt/dartspico-bridge`, des patchs du jeu et des
+  deux firmwares **d'une même révision du dépôt**. Les médias, absents du dépôt, sont hors de
+  cette règle.
+- La révision installée fait foi : `/opt/dartspico-bridge/REVISION`, écrite par chaque
+  installation du code (section 9). La noter **avant** toute mise à jour, pour pouvoir revenir en
+  arrière :
+
+  ```bash
+  cat /opt/dartspico-bridge/REVISION
+  ```
+
+- Révision du clone du dépôt, après `git pull` (même valeur attendue sur chaque clone utilisé, au
+  Mac et au Pi ; un suffixe `-dirty` signale des modifications locales, à éviter) :
+
+  ```bash
+  git -C <DOSSIER-PROJET> pull --ff-only && git -C <DOSSIER-PROJET> describe --always --dirty
+  ```
+
+- **Aucune carte ne donne la révision** : les firmwares annoncent seulement leur version `x.y.z`
+  (champs `fw` et `dmd_fw` de `raspydarts/hw/status`), et `hwd` ne compare que la version du
+  protocole. Noter à la main la révision des firmwares copiés et des patchs appliqués.
+- **Retour arrière** vers la révision notée : `git -C <DOSSIER-PROJET> checkout` de cette
+  révision, puis refaire l'élément voulu ; revenir ensuite sur la branche par
+  `git -C <DOSSIER-PROJET> checkout main`.
+
+### 14.2 Code du Pi : `/opt/dartspico-bridge` (*non vérifié*)
+
+**Avant** : arrêter les deux services s'ils tournent, et tout `hwd` lancé à la main (un seul
+programme peut tenir `/dev/cible` et `/dev/dmd`, [`PROCEDURE.md`](PROCEDURE.md) § 2) :
+
+```bash
+sudo systemctl stop raspydarts-dmd raspydarts-hwd
+```
+
+**Commandes** : essai à blanc, puis installation, comme à la section 9 (**[À ADAPTER]** :
+`tools/install_services.sh --apply` se lance depuis le Mac ; sur le Pi, commandes équivalentes de
+la section 9). Les configurations `/etc/raspydarts/*.toml` ne sont **jamais écrasées** : les
+comparer aux exemples de la nouvelle révision (toutes les clés sont facultatives, mais une clé
+inconnue fait refuser tout le fichier) :
+
+```bash
+diff /etc/raspydarts/hwd.toml pi/hwd/hwd.example.toml; diff /etc/raspydarts/dmd.toml pi/dmd/dmd.example.toml
+```
+
+Redémarrer ensuite les services s'ils tournaient :
+
+```bash
+sudo systemctl start raspydarts-hwd raspydarts-dmd
+```
+
+**Contrôle** : la révision installée est celle du clone, puis services et journaux :
+
+```bash
+cat /opt/dartspico-bridge/REVISION && systemctl is-active raspydarts-hwd raspydarts-dmd
+```
+
+```bash
+journalctl -u raspydarts-dmd -u raspydarts-hwd -n 50 --no-pager
+```
+
+**Fichiers retirés du dépôt** : l'installation n'efface rien dans `/opt/dartspico-bridge` ; un
+fichier retiré du dépôt y reste. Pour repartir propre : retour arrière du
+[`PROCEDURE.md`](PROCEDURE.md) § 2.7 (étapes principales seulement : arrêt et `disable`, suppression
+des unités, de la règle udev et de `/opt/dartspico-bridge`, rechargement ; les `.toml` sont
+gardés), puis nouvelle installation. Le `disable` retire l'activation au démarrage : la refaire si
+elle existait (`PROCEDURE.md` § 2.5).
+
+**Retour arrière** : installer de nouveau le code de la révision notée (§ 14.1) ; les fichiers
+ajoutés par la révision la plus récente restent, sauf à repartir propre comme ci-dessus.
+
+### 14.3 Patchs du jeu (*non vérifié*)
+
+**Avant** :
+
+- arrêter le jeu (il ne s'arrête pas sur SIGTERM : `kill -9` du PID relevé par
+  `pgrep -af '[r]aspydarts\.py'`, section 4.3) et la galerie :
+
+  ```bash
+  systemctl --user stop raspydarts-gallery
+  ```
+
+- sauvegarde nommée du dossier du joueur :
+
+  ```bash
+  cp -a ~/.raspydarts ~/.raspydarts.avant-mise-a-jour-$(date +%Y%m%d)
+  ```
+
+**Où le jeu range ses données** (vérifié dans RaspyDarts 4.6.5, `8fa61ff`, `include/cpaths.py`) :
+configuration (`raspydarts.cfg`), thèmes, scores (`scores.db`) et trophées (`players_data.json`)
+sont dans `~/.raspydarts` (`~/.pydarts` pour une installation d'avant le renommage), **hors du
+clone** du jeu : ni le nouveau clone ni le basculement n'y touchent. Dans le dossier du jeu sont
+repérés `logs/` (journaux) et `backup/` (archives de mise à jour de `include/cupdate.py`,
+inutilisé en mode Pico) ; ils restent dans l'ancienne copie.
+
+**Commandes** : nouveau clone **à côté** de la copie en service, au commit de `pi/patches/BASE` de
+la nouvelle révision, puis vérification et application des patchs (section 4), depuis
+`<DOSSIER-PROJET>` ; **jamais de `git reset --hard`** dans la copie en service :
+
+```bash
+git clone https://github.com/rmdelcelier/RaspyDarts <COPIE-RASPYDARTS>.nouveau
+```
+
+```bash
+git -C <COPIE-RASPYDARTS>.nouveau checkout "$(cat pi/patches/BASE)"
+```
+
+```bash
+tools/apply_patches.sh --check <COPIE-RASPYDARTS>.nouveau && tools/apply_patches.sh <COPIE-RASPYDARTS>.nouveau
+```
+
+**Basculement** : l'ancienne copie est gardée sous `<COPIE-RASPYDARTS>.ancien` ; le jeu se lance
+toujours depuis le même chemin. `mv -T` refuse d'écraser un dossier non vide : si un
+`<COPIE-RASPYDARTS>.ancien` reste d'une mise à jour précédente, le supprimer ou le renommer d'abord.
+Si le dossier parent n'appartient pas à `<utilisateur>` (l'installeur de l'amont place le jeu dans
+`/raspydarts`, à la racine), ces `mv` demandent `sudo` :
+
+```bash
+mv -T <COPIE-RASPYDARTS> <COPIE-RASPYDARTS>.ancien && mv -T <COPIE-RASPYDARTS>.nouveau <COPIE-RASPYDARTS>
+```
+
+**Contrôle** : `BASE` suivi de 11 commits exactement (10 patchs et les fichiers nouveaux), copie
+sans modification (attendu : le commit de `BASE`, puis rien) ; puis lancement du jeu et journal
+en mode Pico (section 11) :
+
+```bash
+git -C <COPIE-RASPYDARTS> rev-parse HEAD~11 && git -C <COPIE-RASPYDARTS> status --porcelain
+```
+
+**Retour arrière** : jeu et galerie arrêtés comme ci-dessus, échange inverse des deux copies :
+
+```bash
+mv -T <COPIE-RASPYDARTS> <COPIE-RASPYDARTS>.nouveau && mv -T <COPIE-RASPYDARTS>.ancien <COPIE-RASPYDARTS>
+```
+
+Si la configuration doit revenir aussi, la mettre de côté puis recopier la sauvegarde (rien n'est
+effacé ; remplacer `<date>` par celle du nom de la sauvegarde) :
+
+```bash
+mv -T ~/.raspydarts ~/.raspydarts.apres-mise-a-jour && cp -a ~/.raspydarts.avant-mise-a-jour-<date> ~/.raspydarts
+```
+
+L'ancienne copie et les sauvegardes se suppriment à la main, plus tard, une fois la nouvelle
+version validée.
+
+### 14.4 Firmware du Pico (*non vérifié*)
+
+**Avant** : arrêter `hwd`, qui tient `/dev/cible` (l'unité, et tout `hwd` lancé à la main). Sans
+`hwd`, le chien de garde du Pico remet les sorties à zéro.
+
+```bash
+sudo systemctl stop raspydarts-hwd
+```
+
+En marche, le firmware coupe Ctrl-C (`micropython.kbd_intr(-1)`, `firmware/pico_target/app.py`) :
+`mpremote` ne peut pas l'interrompre. Deux issues, celles de la section 6.3 :
+
+- **sur place** : GP18 (BTN15) à la masse au démarrage, le firmware n'est pas lancé ;
+- **fenêtre de 2 s** : débrancher puis rebrancher le Pico et lancer la copie aussitôt (le lien
+  `/dev/cible` doit apparaître à temps : *non vérifié*).
+
+**Commandes** : copie de tous les modules sauf `bench.py`, comme à la section 6.3, en visant le
+Pico par son lien (et non « le premier port trouvé »), puis redémarrage :
+
+```bash
+cd firmware/pico_target && mpremote connect /dev/cible cp $(ls *.py | grep -v '^bench\.py$') : ; cd -
+```
+
+```bash
+mpremote connect /dev/cible reset
+```
+
+```bash
+sudo systemctl start raspydarts-hwd
+```
+
+**Contrôle** : voyant de vie à 1 Hz, puis statut de `hwd` (attendu : `"pico": "connected"` et
+`"fw"` égal à `FW_VERSION` de la révision) :
+
+```bash
+mosquitto_sub -h 127.0.0.1 -t raspydarts/hw/status -C 1
+```
+
+```bash
+grep -n '^FW_VERSION' firmware/pico_target/app.py
+```
+
+`mpremote cp` n'efface rien sur le Pico : un module retiré du dépôt y reste. Comparer la liste du
+Pico à celle de `firmware/pico_target/` (jamais de `bench.py` ni de `boot.py`) :
+
+```bash
+mpremote connect /dev/cible ls :
+```
+
+**Retour arrière** : `checkout` de la révision notée (§ 14.1), même copie, puis retour sur
+`main`. Firmware qui ne démarre plus : issue GP18 sur place, la console reste libre.
+
+### 14.5 Firmware de l'Interstate 75 W (*non vérifié* ; flash essayé par l'auteur au banc)
+
+**Avant** : arrêter `hwd`, qui tient `/dev/dmd` (section 7.2) :
+
+```bash
+sudo systemctl stop raspydarts-hwd
+```
+
+Récupérer l'artefact de la CI (job `i75w-uf2`) de l'exécution du **commit de la même révision**
+(section 7.1 : pas encore de Release, artefact gardé 30 jours), et **garder le zip du firmware
+installé** : c'est le seul moyen de revenir en arrière après ces 30 jours.
+
+**Commandes** (depuis `<DOSSIER-PROJET>`, `.uf2` et `.sha256` dans le dossier courant, séries
+exportées comme à la section 7.2) : passage en BOOTSEL sans bouton, flash avec l'empreinte
+relevée dans le `.sha256` (le script attend la valeur, pas le nom du fichier), puis contrôle :
+
+```bash
+tools/bench_i75w/i75w.sh to-bootsel
+```
+
+```bash
+tools/bench_i75w/i75w.sh flash i75w_display.uf2 "$(cut -d ' ' -f 1 i75w_display.uf2.sha256)"
+```
+
+```bash
+tools/bench_i75w/i75w.sh check
+```
+
+```bash
+sudo systemctl start raspydarts-hwd
+```
+
+**Contrôle** : `check` réussi (USB `2e8a:0009`, `HELLO` et `STATS`), puis statut de `hwd`
+(attendu : `"dmd": "connected"` et la version dans `"dmd_fw"`) :
+
+```bash
+mosquitto_sub -h 127.0.0.1 -t raspydarts/hw/status -C 1
+```
+
+**Retour arrière** : mêmes commandes avec le `.uf2` et le `.sha256` gardés. Si `to-bootsel`
+échoue (firmware qui ne répond plus) : BOOT + RST sur place (section 7.2, étape 1).
+
+### 14.6 Médias du DMD (*non vérifié* comme mise à jour)
+
+Hors de la règle du § 14.1 : les médias ne sont pas dans le dépôt.
+
+**Avant** : aucun arrêt n'est demandé par la procédure actuelle ([`PROCEDURE.md`](PROCEDURE.md)
+§ 1). Le service de rendu décode `Scores` et `SpecialsMoves` à son démarrage : le relancer après
+la copie pour qu'il les relise (déduit, *non vérifié*).
+
+**Commandes** : essai à blanc, puis copie réelle (**[À ADAPTER]** : `tools/sync_medias.sh` se
+lance depuis le Mac, section 10) ; seuls les fichiers absents ou modifiés sont transférés :
+
+```bash
+tools/sync_medias.sh --source "/chemin/des/medias"
+```
+
+```bash
+tools/sync_medias.sh --source "/chemin/des/medias" --apply
+```
+
+```bash
+sudo systemctl restart raspydarts-dmd
+```
+
+**Contrôle** : comme au [`PROCEDURE.md`](PROCEDURE.md) § 1.4 (nombre, taille, droits) ; un nouvel
+essai à blanc ne liste plus aucun fichier.
+
+**Retour arrière** : aucun par le script. Il n'efface jamais rien (pas de `--delete`) et ne garde
+pas l'ancienne version d'un fichier remplacé : garder l'ancienne version des médias sur le Mac, et
+retirer à la main sur le Pi un fichier qui ne doit plus y être.

@@ -3,6 +3,8 @@
 Procédure de mise en service du Raspberry Pi 4, à suivre par l'auteur. Le banc de l'Interstate 75 W
 a sa propre procédure : `tools/bench_i75w/PROCEDURE.md`.
 
+Mise à jour d'une installation en service (code, patchs du jeu, firmwares, médias) : [`INSTALLATION.md`](INSTALLATION.md) section 14 (spécification, complément 88).
+
 ## 1. Médias du DMD
 
 Copie des médias du DMD du Mac vers `~/dmd-medias` sur le Pi, dans le dossier personnel de
