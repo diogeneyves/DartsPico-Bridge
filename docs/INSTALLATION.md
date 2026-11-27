@@ -344,7 +344,7 @@ sans elles.
    ```
 
    ```bash
-   I75W_SERIAL=<SERIE_I75W> PICO_SERIAL=<SERIE_PICO> tools/bench_i75w/i75w.sh flash i75w_display.uf2 i75w_display.uf2.sha256
+   I75W_SERIAL=<SERIE_I75W> PICO_SERIAL=<SERIE_PICO> tools/bench_i75w/i75w.sh flash i75w_display.uf2 "$(cut -d ' ' -f 1 i75w_display.uf2.sha256)"
    ```
 
 4. Contrôle (USB `2e8a:0009`, `HELLO` et `STATS`) :
