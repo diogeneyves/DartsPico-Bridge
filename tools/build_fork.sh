@@ -4,6 +4,7 @@
 #
 # Construit la branche main du fork DartsPico-Bridge-game (spécification, compléments 78 à 80 et 83) :
 # BASE (pi/patches/BASE) + patchs de pi/patches/series + 11e commit (fichiers nouveaux, bandeau du README).
+# Fork reporté jusqu'à la carte Pico (complément 85) : outil gardé, prêt pour la reprise.
 #
 # Usage : tools/build_fork.sh [--upstream URL] <dossier>
 #

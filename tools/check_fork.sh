@@ -3,6 +3,7 @@
 # Licence : GPL v3 (voir LICENSE à la racine du dépôt).
 #
 # Contrôle « fork = BASE + série » (spécification, compléments 79 et 80), sans SHA reproductibles.
+# Fork reporté jusqu'à la carte Pico (complément 85) : outil gardé, prêt pour la reprise.
 #
 # Usage : tools/check_fork.sh FORK RÉFÉRENCE
 #

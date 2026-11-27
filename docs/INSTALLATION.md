@@ -104,10 +104,12 @@ décrit pas. Ce que la spécification en dit :
 - il crée `/etc/sudoers.d/010_raspydarts-nopasswd` (`NOPASSWD: ALL`, spécification § 9.8) ;
 - il extrait une archive d'exemple qui ne contient que `themes/`, sans configuration du jeu (§ 9.4).
 
-**[À VENIR]** Le jeu patché sera installé en clonant le fork public `DartsPico-Bridge-game`
-(`8fa61ff`, patchs 0001 à 0010 et fichiers nouveaux déjà appliqués), au lieu du clonage de l'amont, du
-`checkout` et de `tools/apply_patches.sh` du § 4 (spécification, complément 78). Le fork n'existe pas
-encore : d'ici là, suivre le § 4. Mise à jour du jeu installé : non décidée (spécification § 12, point 25).
+**Installation actuelle** : clonage de l'amont, `checkout` de `BASE` et `tools/apply_patches.sh`, au § 4.
+
+**[REPORTÉ]** Le fork public `DartsPico-Bridge-game` (`8fa61ff`, patchs 0001 à 0010 et fichiers nouveaux
+déjà appliqués, spécification, complément 78) remplacera ces étapes. Il est reporté jusqu'à ce que la carte
+Pico soit assemblée et le § 11.2 de la spécification passé au moins jusqu'au point 6 (cible) : sans la carte
+Pico, le jeu patché n'est pas exploitable (spécification, complément 85). Le fork n'existe pas sur GitHub. Mise à jour du jeu installé : non décidée (spécification § 12, point 25).
 
 ## 4. Ce dépôt et les patchs du mode Pico
 

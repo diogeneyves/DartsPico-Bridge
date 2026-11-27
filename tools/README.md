@@ -83,6 +83,8 @@ python3 tools/make_test_gifs.py /tmp/gifs-dmd
 
 ## Fork DartsPico-Bridge-game
 
+**[REPORTÉ]** jusqu'à la carte Pico (spécification, complément 85) : le fork n'existe pas, les outils restent prêts.
+
 `build_fork.sh` (spécification, compléments 78 à 80 ; `docs/UPSTREAM.md`) : construit la branche
 `main` du fork dans un dossier inexistant ou vide, hors du dépôt : clone de l'amont (`--upstream`,
 défaut `https://github.com/rmdelcelier/RaspyDarts`), `BASE` en tête détachée, puis
