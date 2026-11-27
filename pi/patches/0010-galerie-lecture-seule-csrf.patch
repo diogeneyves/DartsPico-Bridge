@@ -1,0 +1,843 @@
+From 1751f35cc2dab39c87c0ca39896df5a1b58c56b8 Mon Sep 17 00:00:00 2001
+From: Gohy Yves <6154641+diogeneyves@users.noreply.github.com>
+Date: Thu, 26 Nov 2026 11:18:40 +0100
+Subject: [PATCH] Gallery: make read-only without a password, check origin on
+ every POST
+
+Without a password ([Gallery] password empty), the gallery is read-only: pages and
+files can still be seen and downloaded, the delete buttons, forms and selection boxes
+are not shown, and any POST to /delete/<game>, /delete/<game>/<file> or /delete-many
+is refused with a 403 page (gallery-error, gallery-back) without deleting anything.
+With a password, behaviour is unchanged.
+
+Every POST, /login included, is accepted only if its Origin header, or else its
+Referer, has the host (and port) of its Host header; otherwise 403.
+
+gallery-warning and gallery-no-password reworded in the 6 languages (keys unchanged),
+.mo files recompiled with msgfmt.
+---
+ include/cgallery.py                  |  61 ++++++++++++++++++++++-----
+ locales/de_DE/LC_MESSAGES/pydarts.mo | Bin 149314 -> 149314 bytes
+ locales/de_DE/LC_MESSAGES/pydarts.po |   4 +-
+ locales/en_GB/LC_MESSAGES/pydarts.mo | Bin 161373 -> 161370 bytes
+ locales/en_GB/LC_MESSAGES/pydarts.po |   4 +-
+ locales/es_ES/LC_MESSAGES/pydarts.mo | Bin 153287 -> 153275 bytes
+ locales/es_ES/LC_MESSAGES/pydarts.po |   4 +-
+ locales/fr_FR/LC_MESSAGES/pydarts.mo | Bin 164107 -> 164109 bytes
+ locales/fr_FR/LC_MESSAGES/pydarts.po |   4 +-
+ locales/it_IT/LC_MESSAGES/pydarts.mo | Bin 150949 -> 150955 bytes
+ locales/it_IT/LC_MESSAGES/pydarts.po |   4 +-
+ locales/nl_NL/LC_MESSAGES/pydarts.mo | Bin 158122 -> 158124 bytes
+ locales/nl_NL/LC_MESSAGES/pydarts.po |   4 +-
+ 13 files changed, 63 insertions(+), 22 deletions(-)
+
+diff --git a/include/cgallery.py b/include/cgallery.py
+index 36c19a0..8282698 100644
+--- a/include/cgallery.py
++++ b/include/cgallery.py
+@@ -10,10 +10,15 @@ Pages : all the games, one game ; each memory can be seen, downloaded, printed,
+ a game can be downloaded (one by one, or a ZIP) or deleted. In the language of the borne.
+ 
+ Password : set on the gallery screen of the borne. Only its hash is kept, in password of
+-[Gallery] (any character can be used, '%' included). Without one, all is allowed and every
+-page says so. The QR codes shown by the borne carry a key (see token) : being in front of
+-it is enough to see and download ; typing the address asks for the password. Deleting
+-always asks for it.
++[Gallery] (any character can be used, '%' included). Without one, the gallery is read-only :
++everything can be seen and downloaded, nothing can be deleted (no delete button, a delete
++asked anyway is refused), and every page says so. The QR codes shown by the borne carry a
++key (see token) : being in front of it is enough to see and download ; typing the address
++asks for the password. Deleting always asks for it.
++
++Every POST (login and deletes) must come from a page of the gallery itself : its Origin
++header, or else its Referer, must name the host (and port) of its Host header ; otherwise
++it is refused (see same_origin).
+ 
+ Usage :
+     python3 include/cgallery.py          the server (port PORT)
+@@ -438,6 +443,28 @@ class Handler(BaseHTTPRequestHandler):
+         jar = cookies.SimpleCookie(self.headers.get('Cookie', ''))
+         return COOKIE in jar and hmac.compare_digest(jar[COOKIE].value, good)
+ 
++    def same_origin(self):
++        '''
++        True if the request comes from a page of the gallery : Origin, or else Referer, has
++        the host (and port) of Host. Neither of them, or another one ("null" included) : False
++        '''
++        host = self.headers.get('Host', '').strip().lower()
++        source = self.headers.get('Origin') or self.headers.get('Referer')
++        if not host or not source:
++            return False
++        try:
++            parts = urllib.parse.urlsplit(source.strip())
++        except ValueError:
++            return False
++        return parts.scheme in ('http', 'https') and parts.netloc.lower() == host
++
++    def refused(self, conf):
++        '''
++        403 of a POST refused : read-only gallery, or not sent by one of its pages
++        '''
++        _ = conf['_']
++        return self.send(403, page(conf, _('gallery-error'), f'<p class="big"><a href="/">&larr; {html.escape(_("gallery-back"))}</a></p>'))
++
+     def login_page(self, conf, wrong=False):
+         _ = conf['_']
+         message = f'<p>{html.escape(_("gallery-wrong"))}</p>' if wrong else ''
+@@ -493,6 +520,8 @@ class Handler(BaseHTTPRequestHandler):
+         query = urllib.parse.parse_qs(url.query)
+         length = int(self.headers.get('Content-Length', '0') or 0)
+         form = urllib.parse.parse_qs(self.rfile.read(length).decode('utf-8', 'replace')) if length else {}
++        if not self.same_origin():
++            return self.refused(conf)
+         if url.path == '/login':
+             target = query.get('next', ['/'])[0]
+             if not target.startswith('/'):
+@@ -503,6 +532,9 @@ class Handler(BaseHTTPRequestHandler):
+         if not self.allowed(conf, {}):
+             return self.login_page(conf)
+         parts = [urllib.parse.unquote(part) for part in url.path.strip('/').split('/') if part]
++        if not conf['password'] and parts and parts[0] in ('delete', 'delete-many'):
++            # Without a password : read-only, nothing is deleted
++            return self.refused(conf)
+         if parts and parts[0] == 'delete' and len(parts) in (2, 3):
+             partie = urllib.parse.quote(parts[1], safe='')
+             # The key of a QR code lets see and download, not delete
+@@ -541,10 +573,15 @@ class Handler(BaseHTTPRequestHandler):
+             ident = partie_id(date, game)
+             photos = sum(1 for name, _p in files if name.lower().endswith(PHOTOS))
+             count = _('gallery-counts').replace('{photos}', str(photos)).replace('{videos}', str(len(files) - photos))
+-            cards.append(f'<div class="card"><label class="pick"><input type="checkbox" name="p" value="{html.escape(f"{date}/{game}")}" onchange="picked()"></label>'
++            # Without a password (read-only) : no box to pick the games to delete
++            pick = (f'<label class="pick"><input type="checkbox" name="p" value="{html.escape(f"{date}/{game}")}" onchange="picked()"></label>'
++                    if conf['password'] else '')
++            cards.append(f'<div class="card">{pick}'
+                          f'<a href="/p/{ident}" class="folder">{FOLDER}</a>'
+                          f'<div class="name"><b>{html.escape(describe(date, game))}</b><br>{html.escape(count)}</div></div>')
+-        if cards:
++        if cards and not conf['password']:
++            body = f'<div class="grid">{"".join(cards)}</div>'
++        elif cards:
+             confirm = self.confirmation(conf, 'gallery-delete-selected')
+             script = ('<script>function picked(){document.getElementById("many").disabled='
+                       '!document.querySelector("input[name=p]:checked");}</script>')
+@@ -566,6 +603,8 @@ class Handler(BaseHTTPRequestHandler):
+         date, game, _path = found
+         texts = {key: html.escape(_(key)) for key in ('gallery-download', 'gallery-print', 'gallery-delete')}
+         confirm_one, confirm_all = self.confirmation(conf, 'gallery-delete-one'), self.confirmation(conf, 'gallery-delete-all')
++        # Without a password (read-only) : no delete button
++        deleting = bool(conf['password'])
+         cards = []
+         for name, _path in files:
+             quoted = urllib.parse.quote(name)
+@@ -578,8 +617,9 @@ class Handler(BaseHTTPRequestHandler):
+             cards.append(f'<div class="card">{view}'
+                          f'<div class="name">{html.escape(os.path.splitext(name)[0])}</div><div class="actions">'
+                          f'<a href="/d/{ident}/{quoted}">{texts["gallery-download"]}</a>{printing}'
+-                         f'<form method="post" action="/delete/{ident}/{quoted}" onsubmit="{confirm_one}"><input type="hidden" name="password">'
+-                         f'<button class="delete">{texts["gallery-delete"]}</button></form></div></div>')
++                         + (f'<form method="post" action="/delete/{ident}/{quoted}" onsubmit="{confirm_one}"><input type="hidden" name="password">'
++                            f'<button class="delete">{texts["gallery-delete"]}</button></form>' if deleting else '')
++                         + '</div></div>')
+         # On a phone : each file downloaded in turn (sharing them all needs HTTPS)
+         downloads = json.dumps([f"/d/{ident}/{urllib.parse.quote(name)}" for name, _p in files])
+         script = (f'<script>async function downloadAll(){{for(const url of {downloads}){{'
+@@ -587,8 +627,9 @@ class Handler(BaseHTTPRequestHandler):
+                   f'a.click();a.remove();await new Promise(r=>setTimeout(r,1200));}}}}</script>')
+         actions = (f'<div class="big"><button onclick="downloadAll()">{html.escape(_("gallery-download-all"))}</button>'
+                    f'<a href="/zip/{ident}">{html.escape(_("gallery-zip"))}</a>'
+-                   f'<form method="post" action="/delete/{ident}" onsubmit="{confirm_all}"><input type="hidden" name="password">'
+-                   f'<button class="delete">{html.escape(_("gallery-delete-game"))}</button></form></div>')
++                   + (f'<form method="post" action="/delete/{ident}" onsubmit="{confirm_all}"><input type="hidden" name="password">'
++                      f'<button class="delete">{html.escape(_("gallery-delete-game"))}</button></form>' if deleting else '')
++                   + '</div>')
+         grid = f'<div class="grid">{"".join(cards)}</div>' if cards else f'<p class="big">{html.escape(_("gallery-empty"))}</p>'
+         self.send(200, page(conf, describe(date, game), actions + grid + script))
+ 
+diff --git a/locales/de_DE/LC_MESSAGES/pydarts.mo b/locales/de_DE/LC_MESSAGES/pydarts.mo
+index 1efd42f9e4028a984cedeb5c0f816a2f1e2aa1e3..fd6ffd15ef3c3c80e0fd54d2817de9975e087dfe 100644
+GIT binary patch
+delta 230
+zcmX@q$9brab3;r>s2KwTgVc9M1}PvN2&DOdbPkZ_0MgY!S`bLL0BIp0Jq<{U0O^%L
+znjJ{*1JZs#`WRGR^amqDC6KStyfI|^#t_DeMXGtFMG8Kt#i@BZ3RR`K3O<Lo6(?t;
+z<|(9R=A{-Zq@@;@<fNug5B|>h(#9n-Rlz+mC$$JjXBL+z02LOcW+tVl0vU(*lvI`I
+jDMX<ep%9Q*TwI=CR5HEh2ct3<%)HdR?F)V|F7g8aXR}K>
+
+delta 230
+zcmX@q$9brab3;r>s5JuvgVc9M1}PvN2Bi6bbRm%D0MZRWS`bKg0%;*2JsU`i0O@r=
+znjJ_V2GV{&`ZQEt>IWl336QVbyfI|^#t_DeMOt2|DXB#YnYjvnsU=nAsYTfe*@=01
+z3a&+&d3mWtrFrS8c?vm)w-qO6O!xcF_|gHYK2ISfGqpIC2yH<98m^gn#U-gZIY8s4
+R7yn>XX4Kri;0NO(KLB-MO5^|l
+
+diff --git a/locales/de_DE/LC_MESSAGES/pydarts.po b/locales/de_DE/LC_MESSAGES/pydarts.po
+index 262b59c..cad50db 100644
+--- a/locales/de_DE/LC_MESSAGES/pydarts.po
++++ b/locales/de_DE/LC_MESSAGES/pydarts.po
+@@ -812,7 +812,7 @@ msgid "gallery-scan"
+ msgstr "Scannen zum Ansehen, Herunterladen, Drucken oder Löschen von Fotos und Videos"
+ 
+ msgid "gallery-no-password"
+-msgstr "Kein Passwort: Jeder im Netzwerk kann Erinnerungen löschen"
++msgstr "Kein Passwort: nur Lesen, zum Löschen eines festlegen"
+ 
+ msgid "gallery-password"
+ msgstr "Passwort"
+@@ -845,7 +845,7 @@ msgid "gallery-error"
+ msgstr "Fehler"
+ 
+ msgid "gallery-warning"
+-msgstr "Kein Passwort: Jeder in diesem Netzwerk kann Erinnerungen löschen (Einstellung im «Galerie»-Menü des Automaten)."
++msgstr "Kein Passwort: Die Galerie ist schreibgeschützt. Zum Löschen ein Passwort im «Galerie»-Menü des Automaten festlegen."
+ 
+ msgid "gallery-counts"
+ msgstr "{photos} Foto(s), {videos} Video(s)"
+diff --git a/locales/en_GB/LC_MESSAGES/pydarts.mo b/locales/en_GB/LC_MESSAGES/pydarts.mo
+index bacac2526b1b559e03a306fa1a4a03200b3b329c..2eba1e11b9de3b60329f22cfb5074efaa6d1dedc 100644
+GIT binary patch
+delta 5529
+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
+
+delta 5532
+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
+b^x%^6^3tk#>7CnnsA6`z>Mgmc$NT>uXA;Zd
+
+diff --git a/locales/en_GB/LC_MESSAGES/pydarts.po b/locales/en_GB/LC_MESSAGES/pydarts.po
+index 2175d58..e54c860 100644
+--- a/locales/en_GB/LC_MESSAGES/pydarts.po
++++ b/locales/en_GB/LC_MESSAGES/pydarts.po
+@@ -812,7 +812,7 @@ msgid "gallery-scan"
+ msgstr "Scan to view, download, print, or delete game photos and videos"
+ 
+ msgid "gallery-no-password"
+-msgstr "No password: anyone on the network can delete memories"
++msgstr "No password: read-only, set one to delete memories"
+ 
+ msgid "gallery-password"
+ msgstr "Password"
+@@ -845,7 +845,7 @@ msgid "gallery-error"
+ msgstr "Error"
+ 
+ msgid "gallery-warning"
+-msgstr "No password: anyone on this network can delete memories (setting available in machine « Gallery » menu)."
++msgstr "No password: the gallery is read-only. Set a password in the machine's \"Gallery\" menu to be able to delete."
+ 
+ msgid "gallery-counts"
+ msgstr "{photos} photo(s), {videos} video(s)"
+diff --git a/locales/es_ES/LC_MESSAGES/pydarts.mo b/locales/es_ES/LC_MESSAGES/pydarts.mo
+index c37e64c52fd45e450e717702a669fff30be21bae..e7b7d9cc0643cc920bf773f54385724c68b30ae6 100644
+GIT binary patch
+delta 5582
+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
+JdZN?R{{c*ma$x`f
+
+delta 5594
+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
+Qkm{b(qwc;2sdkh83r?4B)&Kwi
+
+diff --git a/locales/es_ES/LC_MESSAGES/pydarts.po b/locales/es_ES/LC_MESSAGES/pydarts.po
+index c0f93a6..652dbe3 100644
+--- a/locales/es_ES/LC_MESSAGES/pydarts.po
++++ b/locales/es_ES/LC_MESSAGES/pydarts.po
+@@ -812,7 +812,7 @@ msgid "gallery-scan"
+ msgstr "Escanee para ver, descargar, imprimir o eliminar fotos y vídeos de las partidas"
+ 
+ msgid "gallery-no-password"
+-msgstr "Sin contraseña: cualquier persona en la red puede eliminar los recuerdos"
++msgstr "Sin contraseña: solo lectura, defina una para eliminar recuerdos"
+ 
+ msgid "gallery-password"
+ msgstr "Contraseña"
+@@ -845,7 +845,7 @@ msgid "gallery-error"
+ msgstr "Error"
+ 
+ msgid "gallery-warning"
+-msgstr "Sin contraseña: cualquier persona en esta red puede eliminar los recuerdos (ajuste disponible en el menú «Galería» de la máquina)."
++msgstr "Sin contraseña: la galería es de solo lectura. Defina una contraseña en el menú «Galería» de la máquina para poder eliminar."
+ 
+ msgid "gallery-counts"
+ msgstr "{photos} foto(s), {videos} vídeo(s)"
+diff --git a/locales/fr_FR/LC_MESSAGES/pydarts.mo b/locales/fr_FR/LC_MESSAGES/pydarts.mo
+index 675a62b660ddafd6e7abae8ecce58814fce8752f..e6bbcf137c52ec0addf3c3da4e99f64d87cc207d 100644
+GIT binary patch
+delta 5589
+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
+TK#VrGVCK&TJdhskzA^ege;w|w
+
+delta 5587
+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
+E1Gt>;w*UYD
+
+diff --git a/locales/fr_FR/LC_MESSAGES/pydarts.po b/locales/fr_FR/LC_MESSAGES/pydarts.po
+index 8d18c3a..8b42519 100644
+--- a/locales/fr_FR/LC_MESSAGES/pydarts.po
++++ b/locales/fr_FR/LC_MESSAGES/pydarts.po
+@@ -812,7 +812,7 @@ msgid "gallery-scan"
+ msgstr "Scannez pour voir, télécharger, imprimer ou supprimer les photos et vidéos des parties"
+ 
+ msgid "gallery-no-password"
+-msgstr "Aucun mot de passe : n'importe qui sur le réseau peut supprimer les souvenirs"
++msgstr "Sans mot de passe : lecture seule, définissez-en un pour supprimer"
+ 
+ msgid "gallery-password"
+ msgstr "Mot de passe"
+@@ -845,7 +845,7 @@ msgid "gallery-error"
+ msgstr "Erreur"
+ 
+ msgid "gallery-warning"
+-msgstr "Aucun mot de passe : n'importe qui sur ce réseau peut supprimer les souvenirs (réglage sur l'écran « Galerie » de la borne)."
++msgstr "Sans mot de passe, la galerie est en lecture seule. Définissez un mot de passe sur l'écran « Galerie » de la borne pour pouvoir supprimer."
+ 
+ msgid "gallery-counts"
+ msgstr "{photos} photo(s), {videos} vidéo(s)"
+diff --git a/locales/it_IT/LC_MESSAGES/pydarts.mo b/locales/it_IT/LC_MESSAGES/pydarts.mo
+index 0b150650ffa9ad2bae440992adec5745d9054df3..f09eb4323f3c4f727894fbbc8ce9335b9030a4b5 100644
+GIT binary patch
+delta 5533
+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
+
+delta 5512
+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
+btl2d@wy3J6+S};$b7TGDn>YHo?MnX(_L5LS
+
+diff --git a/locales/it_IT/LC_MESSAGES/pydarts.po b/locales/it_IT/LC_MESSAGES/pydarts.po
+index f112b3e..767c396 100644
+--- a/locales/it_IT/LC_MESSAGES/pydarts.po
++++ b/locales/it_IT/LC_MESSAGES/pydarts.po
+@@ -812,7 +812,7 @@ msgid "gallery-scan"
+ msgstr "Scansiona per visualizzare, scaricare, stampare o eliminare foto e video"
+ 
+ msgid "gallery-no-password"
+-msgstr "Nessuna password: chiunque sulla rete può eliminare i ricordi"
++msgstr "Nessuna password: sola lettura, impostane una per eliminare"
+ 
+ msgid "gallery-password"
+ msgstr "Password"
+@@ -845,7 +845,7 @@ msgid "gallery-error"
+ msgstr "Errore"
+ 
+ msgid "gallery-warning"
+-msgstr "Nessuna password: chiunque su questa rete può eliminare i ricordi (impostazione nel menu «Galleria» della postazione)."
++msgstr "Nessuna password: la galleria è in sola lettura. Imposta una password nel menu «Galleria» della postazione per poter eliminare."
+ 
+ msgid "gallery-counts"
+ msgstr "{photos} foto, {videos} video"
+diff --git a/locales/nl_NL/LC_MESSAGES/pydarts.mo b/locales/nl_NL/LC_MESSAGES/pydarts.mo
+index 7252d6206cd4ba1e7738788093e85e5810f311ef..e4768cd087877f5cf18785cdcbd4c18845242d71 100644
+GIT binary patch
+delta 5553
+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
+ayqwRLWfm<jn?EPBC{w=YM6=YPqW=S}ilv1B
+
+delta 5529
+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
+
+diff --git a/locales/nl_NL/LC_MESSAGES/pydarts.po b/locales/nl_NL/LC_MESSAGES/pydarts.po
+index 0b5bd24..eafc9d5 100644
+--- a/locales/nl_NL/LC_MESSAGES/pydarts.po
++++ b/locales/nl_NL/LC_MESSAGES/pydarts.po
+@@ -812,7 +812,7 @@ msgid "gallery-scan"
+ msgstr "Scan om foto's en video me van spellen te bekijken, te downloaden, af te drukken of te verwijderen"
+ 
+ msgid "gallery-no-password"
+-msgstr "Geen wachtwoord: iedereen op het netwerk kan herinneringen verwijderen"
++msgstr "Geen wachtwoord: alleen lezen, stel er een in om te verwijderen"
+ 
+ msgid "gallery-password"
+ msgstr "Wachtwoord"
+@@ -845,7 +845,7 @@ msgid "gallery-error"
+ msgstr "Fout"
+ 
+ msgid "gallery-warning"
+-msgstr "Geen wachtwoord: iedereen op dit netwerk kan herinneringen verwijderen (instelling op het scherm « Galerij »)."
++msgstr "Geen wachtwoord: de galerij is alleen-lezen. Stel een wachtwoord in op het scherm « Galerij » om te kunnen verwijderen."
+ 
+ msgid "gallery-counts"
+ msgstr "{photos} foto('s), {videos} video('s)"

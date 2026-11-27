@@ -1,0 +1,15 @@
+# Configuration du service de rendu du DMD (exemple). Copie : /etc/raspydarts/dmd.toml
+# (spécification § 9.9, 50e complément). Toutes les clés sont facultatives ; les valeurs
+# ci-dessous sont les défauts. Une clé inconnue refuse tout le fichier.
+# Les options de la ligne de commande (--media-dir, --no-special-moves, --web-port,
+# --mqtt-host, --mqtt-port) l'emportent sur ce fichier. hdmi_output n'a pas d'option.
+
+dmd_media_dir = "~/dmd-medias"          # Gifs, SpecialsMoves, Scores, Fonts ; ~ : utilisateur du service
+dmd_special_moves = 1                   # 1 : coups spéciaux ; 0 : coupés
+attract_delay_s = 15                    # Attract Mode après ce délai sans message (1 à 3600)
+attract_gif_max_s = 60                  # GIF de l'Attract Mode coupé à cette durée (5 à 600)
+attract_clock_every_s = 120             # heure 10 s toutes les ... s, si NTP synchronisé (10 à 3600)
+web_port = 8081                         # DMD virtuel sur 127.0.0.1 seulement ; 0 : coupé
+hdmi_output = 0                         # 1 : écran HDMI dédié sur HDMI-A-2 (complément 72) ; jamais en rejeu
+mqtt_host = "127.0.0.1"
+mqtt_port = 1883

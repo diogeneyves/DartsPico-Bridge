@@ -1,0 +1,41 @@
+# Fichiers système macOS
+.DS_Store
+
+# Dossiers de reprise (notes de session, jamais commités)
+docs/REPRISE*.md
+
+# Projet EasyEDA (contient les identifiants EasyEDA de l'auteur, jamais commité)
+hardware/easyeda/
+hardware/EasyEda/
+
+# Médias du DMD (jamais commités, spécification § 12, 41e complément) : par dossier, pas par extension
+Medias*/
+dmd-medias/
+.config_backups/
+
+# Clones locaux du Pico SDK et de picotool (spécification § 8, 34e complément)
+firmware/i75w_display/external/
+
+# Bibliothèque portable du firmware C++ : le .gitignore racine (modèle Python) ignore tout dossier lib/
+!firmware/i75w_display/lib/
+
+# Règles reprises du .gitignore de My_GIT_Projects (complément 81)
+__pycache__/
+*.py[codz]
+build/
+dist/
+*.egg-info/
+*.mo
+*.log
+.env
+.venv
+venv/
+.DS_Store
+lib/
+# Bibliothèque portable du firmware C++ : exception répétée après la règle lib/ ci-dessus
+# (la dernière règle qui correspond l'emporte)
+!firmware/i75w_display/lib/
+
+# Consignes de Claude Code, jamais publiées (complément 79, Q8)
+CLAUDE.md
+.claude/

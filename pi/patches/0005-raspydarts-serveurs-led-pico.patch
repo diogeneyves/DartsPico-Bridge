@@ -1,0 +1,113 @@
+From ca25a16c9ab9e16f86459d72beae90538fff4b5c Mon Sep 17 00:00:00 2001
+From: Gohy Yves <6154641+diogeneyves@users.noreply.github.com>
+Date: Thu, 19 Nov 2026 20:52:36 +0100
+Subject: [PATCH] raspydarts: start the LED servers in Pico board mode
+
+In Pico mode ([SectionAdvanced] hardware = pico), PIN_TARGETLED and PIN_STRIPLED
+are board channels (0 to 2; target 0, strip 1): StripLeds and TargetLeds
+subscribers, servers started without sudo by include/cpico.py (pico_shims/ first
+in PYTHONPATH, channel in RASPYDARTS_PICO_LED_CHANNEL, dummy pin 18, colour
+order in -type). Strip with 0 LEDs: no server. Pi pins (10, 12, 18, 21) and normal
+mode: original start-up, unchanged.
+
+Co-Authored-By: Claude Opus 5.5 <noreply@anthropic.com>
+---
+ raspydarts.py | 64 +++++++++++++++++++++++++++++++++------------------
+ 1 file changed, 42 insertions(+), 22 deletions(-)
+
+diff --git a/raspydarts.py b/raspydarts.py
+index 8b92138..5c506ee 100644
+--- a/raspydarts.py
++++ b/raspydarts.py
+@@ -131,10 +131,18 @@ try:
+         logs.info("================================================================")
+ 
+     # dispatcher dispatcher
++    # Carte Pico ([SectionAdvanced] hardware = pico) : PIN_TARGETLED et PIN_STRIPLED sont des
++    # canaux de la carte (0 à 2 ; cible 0, ruban 1), serveurs LED lancés par include/cpico.py
++    from include import ci2c
++    pico_strip = pico_target = False
++    if ci2c.pico_mode(Config):
++        from include import cpico
++        pico_strip = cpico.strip_leds_wanted(config_leds)
++        pico_target = cpico.target_leds_wanted(config_leds)
+     subsribers = []
+-    if config_leds['PIN_STRIPLED'] in ('10', '12', '18', '21'):
++    if config_leds['PIN_STRIPLED'] in ('10', '12', '18', '21') or pico_strip:
+         subsribers.append('StripLeds')
+-    if config_leds['PIN_TARGETLED'] in ('10', '12', '18', '21'):
++    if config_leds['PIN_TARGETLED'] in ('10', '12', '18', '21') or pico_target:
+         subsribers.append('TargetLeds')
+     if Config.get_value('SectionAdvanced', 'use-dmd'):
+         subsribers.append('Dmd')
+@@ -164,17 +172,22 @@ except Exception as exception:
+ # Start Leds servers
+ #################
+ 
+-if Config.file_exists and config_leds['PIN_STRIPLED'] in ('10', '12', '18', '21'):
++if Config.file_exists and (config_leds['PIN_STRIPLED'] in ('10', '12', '18', '21') or pico_strip):
+     logs.debug("Starting Strip Leds Server")
+     strip_log = open('logs/StripLeds.log', "w", 1)
+-    cmd = ['sudo', 'python3', 'addons/StripLeds_Server.py'
+-            , f'-host={mqtt_broker}'
+-            , '9'
+-            , f"{dispatcher.strip_topic}"
+-            , f"{config_leds['PIN_STRIPLED']}"
+-            , f"{config_leds['NBR_STRIPLED']}"
+-            , f"{config_leds['BRI_STRIPLED']}"]
+-    p_strip = Popen(cmd, stdout=strip_log)
++    if pico_strip:
++        # Carte Pico : sans sudo, remplaçant de rpi_ws281x (pico_shims/)
++        cmd, env = cpico.strip_server(cpaths.ROOT_DIR, mqtt_broker, dispatcher.strip_topic, config_leds)
++        p_strip = Popen(cmd, stdout=strip_log, env=env)
++    else:
++        cmd = ['sudo', 'python3', 'addons/StripLeds_Server.py'
++                , f'-host={mqtt_broker}'
++                , '9'
++                , f"{dispatcher.strip_topic}"
++                , f"{config_leds['PIN_STRIPLED']}"
++                , f"{config_leds['NBR_STRIPLED']}"
++                , f"{config_leds['BRI_STRIPLED']}"]
++        p_strip = Popen(cmd, stdout=strip_log)
+     dispatcher.strip_leds = True
+     logs.debug(f"Launched {' '.join(cmd)}")
+     sleep(0.5)
+@@ -182,20 +195,27 @@ else:
+     dispatcher.strip_leds = False
+     p_strip = None
+ 
+-if Config.file_exists and config_leds['PIN_TARGETLED'] in ('10' , '12', '18', '21'):
++if Config.file_exists and (config_leds['PIN_TARGETLED'] in ('10' , '12', '18', '21') or pico_target):
+     logs.debug("Starting Target Leds Server")
+     logs.debug(f"Using this configuration : {config_target_leds}")
+     target_log = open('logs/TargetLeds.log', "w", 1)
+-    cmd = ['sudo', 'python3', f'{cpaths.ROOT_DIR}/addons/TargetLeds_Server.py'
+-            , f'-host={mqtt_broker}'
+-            , f'-bgcolors={bg_colors_sending}'
+-            , f"-bgbrightness={Config.get_value('SectionAdvanced', 'target-bgbrightness')}"
+-            , '10'
+-            , f'{dispatcher.target_topic}'
+-            , f'{config_target_leds}'
+-            , f"{config_leds['PIN_TARGETLED']}"
+-            , f"{config_leds['BRI_TARGETLED']}"]
+-    p_target = Popen(cmd, stdout=target_log)
++    if pico_target:
++        # Carte Pico : sans sudo, remplaçant de rpi_ws281x (pico_shims/)
++        cmd, env = cpico.target_server(cpaths.ROOT_DIR, mqtt_broker, dispatcher.target_topic, config_leds,
++                                       config_target_leds, bg_colors_sending,
++                                       Config.get_value('SectionAdvanced', 'target-bgbrightness'))
++        p_target = Popen(cmd, stdout=target_log, env=env)
++    else:
++        cmd = ['sudo', 'python3', f'{cpaths.ROOT_DIR}/addons/TargetLeds_Server.py'
++                , f'-host={mqtt_broker}'
++                , f'-bgcolors={bg_colors_sending}'
++                , f"-bgbrightness={Config.get_value('SectionAdvanced', 'target-bgbrightness')}"
++                , '10'
++                , f'{dispatcher.target_topic}'
++                , f'{config_target_leds}'
++                , f"{config_leds['PIN_TARGETLED']}"
++                , f"{config_leds['BRI_TARGETLED']}"]
++        p_target = Popen(cmd, stdout=target_log)
+     dispatcher.target_leds = True
+     logs.debug(f"Launched {' '.join(cmd)}")
+     sleep(0.5)

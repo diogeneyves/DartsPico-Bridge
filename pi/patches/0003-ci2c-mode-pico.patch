@@ -1,0 +1,45 @@
+From 85af54b01c7facaafc0ac343a827a5b1513ed4d1 Mon Sep 17 00:00:00 2001
+From: Gohy Yves <6154641+diogeneyves@users.noreply.github.com>
+Date: Wed, 18 Nov 2026 18:44:30 +0100
+Subject: [PATCH] ci2c: do nothing in Pico board mode ([SectionAdvanced]
+ hardware = pico)
+
+follow_wiring neither reads nor writes config.txt, does not run sudo and does
+not ask for a reboot when the Pico board replaces the Raspberry's MCP23017s.
+---
+ include/ci2c.py | 17 +++++++++++++++++
+ 1 file changed, 17 insertions(+)
+
+diff --git a/include/ci2c.py b/include/ci2c.py
+index 4992e5b..021b067 100644
+--- a/include/ci2c.py
++++ b/include/ci2c.py
+@@ -105,11 +105,28 @@ def write(state):
+     return True
+ 
+ 
++def pico_mode(config):
++    '''
++    Mode carte Pico ([SectionAdvanced] hardware = pico, include/craspberry.py) : boutons, Toys
++    et cible passent par la carte Pico, le bus I2C du Raspberry ne sert pas
++    '''
++    import sys    # pylint: disable=import-outside-toplevel
++    module = sys.modules.get('include.craspberry')
++    if module is not None and getattr(module, 'PICO', False):
++        return True
++    advanced = config.config.get('SectionAdvanced') or {}
++    return str(advanced.get('hardware', '')).strip().lower() == 'pico'
++
++
+ def follow_wiring(config, logs):
+     '''
+     At the start : the I2C bus set as the wiring wants. Returns None (nothing to do), or
+     ('off' | 'on', written) : the change asked, written in config.txt or not (no rights)
++    Mode carte Pico : rien (ni config.txt, ni sudo, ni redémarrage)
+     '''
++    if pico_mode(config):
++        logs.info("I2C : Pico card mode, wiring of the I2C bus not checked")
++        return None
+     used = gpio_used(config) & I2C_PINS
+     asked = enabled_in_config()
+     if used:

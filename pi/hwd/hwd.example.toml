@@ -1,0 +1,36 @@
+# Configuration de hwd (exemple). Copie prévue : /etc/raspydarts/hwd.toml
+# Toutes les clés sont facultatives ; les valeurs ci-dessous sont les défauts.
+
+pico_device = "/dev/cible"          # lien udev vers le port USB du Pico
+mqtt_host = "localhost"
+mqtt_port = 1883
+topic_base = "raspydarts"
+keepalive_s = 5                     # testament publié en moins de 8 s (R6)
+
+miss_window_ms = 50                 # choc sans fléchette à ± cette fenêtre : MISS (à mesurer)
+miss_grace_ms = 20                  # marge de transport avant de publier MISS
+led_max_fps = 30                    # images LED envoyées au plus par seconde et par canal (capacité du Pico)
+ack_timeout_ms = 200
+handshake_timeout_ms = 1000
+handshake_flush_ms = 50             # à l'ouverture du port : "\n", lignes ignorées ce temps, puis WHO
+pico_silence_ms = 3000              # sans nouvelle du Pico : nouvelle présentation (WHO)
+reconnect_ms = 1000
+
+# DMD (Interstate 75 W, § 6.4 et § 9.5)
+dmd_device = "/dev/dmd"             # lien udev vers le port USB de la carte ; "" : DMD désactivé
+dmd_full_period_ms = 1000           # image complète (FRAME) périodique, 200 à 2500
+dmd_stale_ms = 2000                 # sans image du rendu ce temps : plus d'émission (1500 à 10000)
+dmd_silence_ms = 3000               # sans trame de la carte ce temps : nouveau HELLO_REQ (1500 à 10000)
+
+led_brightness = [128, 255, 255]    # LEDB par canal à la connexion ; canal 0 limité (≈ 6 A max, § 3.8)
+
+# Paramètres du Pico (§ 5.3), envoyés par SET à chaque connexion. hwd n'envoie jamais SAVE.
+[pico_params]
+# min_contact_us = 300
+# watchdog_ms = 3000
+# led0_order = "GRB"
+# Nombre de LED par canal (§ 3.5) : 204 LED de la cible sur le canal 0 (J31) ;
+# rubans accessoires sur les canaux 1 (J32) et 2 (J33), 0 par défaut.
+# led0_count = 204
+# led1_count = 0
+# led2_count = 0

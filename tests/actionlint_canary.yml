@@ -1,0 +1,21 @@
+# Témoin d'actionlint (spécification, complément 64) : ce workflow est FAUX EXPRÈS.
+# Il est hors de .github/workflows/ et ne tourne donc jamais. Le job « actionlint » de la CI
+# exige qu'actionlint le refuse avec le code de sortie 1 exactement, en signalant :
+#   - « potentially untrusted » : expression ${{ github.event.pull_request.title }} dans un run:
+#     (règle d'actionlint lui-même) ;
+#   - « SC2086 » : variable non citée (preuve que shellcheck tourne).
+# Ne pas corriger ces deux fautes.
+name: Témoin actionlint (faux exprès)
+
+on: pull_request
+
+jobs:
+  canary:
+    runs-on: ubuntu-24.04
+    steps:
+      - name: Faute 1, entrée non fiable injectée dans le script
+        run: echo "${{ github.event.pull_request.title }}"
+      - name: Faute 2, variable non citée (SC2086)
+        env:
+          UNQUOTED: "a b"
+        run: echo $UNQUOTED

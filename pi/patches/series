@@ -1,0 +1,11 @@
+# Patchs de RaspyDarts, dans leur ordre d'application (tools/apply_patches.sh)
+0001-craspberry-mode-pico.patch
+0002-cconfig-mode-pico.patch
+0003-ci2c-mode-pico.patch
+0004-cscreen-mode-pico.patch
+0005-raspydarts-serveurs-led-pico.patch
+0006-statistiques-option-send-stats.patch
+0007-mises-a-jour-mode-pico.patch
+0008-reglages-systeme-mode-pico.patch
+0009-langues-mode-pico.patch
+0010-galerie-lecture-seule-csrf.patch

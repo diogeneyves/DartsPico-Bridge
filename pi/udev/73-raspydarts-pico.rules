@@ -1,0 +1,20 @@
+# Copyright (C) 2026 Gohy Yves
+# Licence : GPL v3 (voir LICENSE à la racine du dépôt).
+#
+# RaspyDarts-Pico : liens stables des deux ports série (spécification § 2, complément 62).
+# Installé par tools/install_services.sh --apply dans /etc/udev/rules.d/, écrasé à chaque fois ;
+# appliqué aux cartes déjà branchées par « udevadm trigger », à la main (docs/PROCEDURE.md, § 2.6).
+#
+# Critère : VID:PID et numéro de série USB. ATTRS{serial} est comparé en casse EXACTE :
+# minuscules sous MicroPython, majuscules sous le firmware C++ de l'Interstate 75 W.
+# Numéros de série : marqueurs SERIE_PICO et SERIE_I75W entre chevrons (complément 77), remplacés par
+# tools/install_services.sh (--pico-serial en minuscules, --i75w-serial en majuscules) dans la
+# copie envoyée au Pi ; refus si un marqueur manque ou reste. Carte ou firmware changé :
+# relever ATTRS{serial} par « udevadm info -a -n /dev/ttyACMx » et relancer l'installation.
+# Droits : ceux de ttyACM* (root:dialout, 0660) ; ModemManager ne sonde pas ces ports.
+
+# Pico 2 de la cible, sous MicroPython (série en minuscules)
+SUBSYSTEM=="tty", ATTRS{idVendor}=="2e8a", ATTRS{idProduct}=="0005", ATTRS{serial}=="<SERIE_PICO>", SYMLINK+="cible", ENV{ID_MM_DEVICE_IGNORE}="1"
+
+# Interstate 75 W, firmware C++ « RaspyDarts DMD » (série en majuscules)
+SUBSYSTEM=="tty", ATTRS{idVendor}=="2e8a", ATTRS{idProduct}=="0009", ATTRS{serial}=="<SERIE_I75W>", SYMLINK+="dmd", ENV{ID_MM_DEVICE_IGNORE}="1"

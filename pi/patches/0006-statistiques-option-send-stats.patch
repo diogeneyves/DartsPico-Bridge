@@ -1,0 +1,91 @@
+From adaa320fa30f8e0d8f6096ba3a4bb5004e4a35c0 Mon Sep 17 00:00:00 2001
+From: Gohy Yves <6154641+diogeneyves@users.noreply.github.com>
+Date: Thu, 19 Nov 2026 19:48:21 +0100
+Subject: [PATCH] Statistics: add [SectionAdvanced] send-stats option (True by
+ default)
+
+send-stats:False stops sending the game statistics to raspystats.raspyhub.fr
+(cupdate.send_infos: leg start, cancel, end and interruption): nothing sent,
+no error, one log line. The key is written to raspydarts.cfg only when it is
+disabled: the default file stays identical. Only lines are added.
+---
+ include/cconfig.py |  7 +++++++
+ include/cupdate.py | 19 +++++++++++++++++++
+ raspydarts.py      |  2 ++
+ 3 files changed, 28 insertions(+)
+
+diff --git a/include/cconfig.py b/include/cconfig.py
+index a974a54..7fa3b61 100644
+--- a/include/cconfig.py
++++ b/include/cconfig.py
+@@ -159,6 +159,9 @@ DefaultConfig['SectionAdvanced'] = {
+     'game-options-list':'',
+     # Carte Pico (RaspyDarts-Pico) : pico ; sinon normal (include/craspberry.py)
+     'hardware': 'normal',
++    # Statistiques de partie envoyées à raspystats.raspyhub.fr (include/cupdate.py, send_infos) :
++    # True par défaut, comme l'original ; False : aucun envoi (RaspyDarts-Pico, patch 0006)
++    'send-stats': True,
+     'richard-mode': False
+     }
+ #
+@@ -1507,6 +1510,10 @@ class Config:
+             # Carte Pico (RaspyDarts-Pico) : écrit seulement quand ce n'est pas le mode normal
+             self.conf += "### Hardware : pico (RaspyDarts-Pico card) or normal\n"
+             self.conf += f"hardware:{Advanced['hardware']}\n"
++        if str(Advanced.get('send-stats', True)).strip().lower() in ('false', '0', 'no', 'non', 'off', 'n'):
++            # Envoi des statistiques coupé (RaspyDarts-Pico, patch 0006) : écrit seulement dans ce cas
++            self.conf += "### Statistics of the games sent to raspystats.raspyhub.fr : True or False\n"
++            self.conf += f"send-stats:{Advanced['send-stats']}\n"
+         self.conf += "### For Richard's case\n"
+         self.conf += f"richard-mode:{Advanced['richard-mode']}\n\n"
+ 
+diff --git a/include/cupdate.py b/include/cupdate.py
+index 5096d1b..a7bffc2 100644
+--- a/include/cupdate.py
++++ b/include/cupdate.py
+@@ -450,6 +450,21 @@ STATS_URLS = ('https://raspystats.raspyhub.fr/api/v1/raspydarts/plays',
+               'http://raspystats.raspyhub.fr/api/v1/raspydarts/plays')
+ STATS_API_KEY = 'raspydarts_stats_2026'
+ STATS_TIMEOUT = 5
++# Envoi des statistiques : [SectionAdvanced] send-stats, lue au démarrage par raspydarts.py
++# (RaspyDarts-Pico, patch 0006). Activé par défaut, comme l'original
++SEND_STATS = True
++STATS_OFF_VALUES = ('false', '0', 'no', 'non', 'off', 'n')
++
++
++def set_send_stats(value):
++    '''
++    Envoi des statistiques de partie activé ou non ([SectionAdvanced] send-stats) : False,
++    0, no, non, off ou n le coupent (casse et espaces ignorés) ; toute autre valeur l'active
++    '''
++    global SEND_STATS
++    SEND_STATS = str(value).strip().lower() not in STATS_OFF_VALUES
++    return SEND_STATS
++
+ # The same identifier as Raspy2DMD (its recipe exactly) : a borne with both is one installation
+ MACHINE_ID_SALT = 'raspy2dmd_telemetry_salt_v1'
+ _machine_id = None
+@@ -499,6 +514,10 @@ def send_infos(logs, game, nb_players, options, rpi_model, event, competition_mo
+     game up to 10 s at boot, the Wi-Fi not being connected yet : the desktop was seen
+     after the intro)
+     '''
++    if not SEND_STATS:
++        # Envoi coupé ([SectionAdvanced] send-stats) : rien n'est préparé ni envoyé
++        logs.info(f"Statistics not sent ({event}) : send-stats disabled in [SectionAdvanced]")
++        return
+     from include import cplatform    # pylint: disable=import-outside-toplevel
+     data = {'machine_id': machine_id(),
+             'play_id': str(play_id),
+diff --git a/raspydarts.py b/raspydarts.py
+index 5c506ee..d700097 100644
+--- a/raspydarts.py
++++ b/raspydarts.py
+@@ -387,6 +387,8 @@ game_type = None
+ display.init_colorset()
+ 
+ version = cupdate.get_version(logs)
++# Statistiques de partie : envoyées ou non selon [SectionAdvanced] send-stats (RaspyDarts-Pico)
++cupdate.set_send_stats(config_advanced.get('send-stats', True))
+ # After an update (the game restarted) : the settings of the system of the new version
+ cupdate.apply_system_settings(logs, version)
+ # The page Paramétrage of the themes still as delivered : 4 columns, with LED des boutons

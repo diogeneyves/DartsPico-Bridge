@@ -1,0 +1,1013 @@
+{
+ "_comment": "Produit par tools/epro_netlist.py extract depuis le projet EasyEDA (hardware/EasyEda/Darts.epro2, non commite) ; ne pas modifier a la main. Reperes cites dans hardware/pinout.json ; reseaux anonymes nommes ~ + premiere pastille. Specification, complement 66.",
+ "refs": {
+  "C25": {
+   "Manufacturer Part": "CC0603KRX7R9BB104",
+   "Supplier Part": "C14663",
+   "Value": "100nF",
+   "pads": {
+    "1": "~C25.1",
+    "2": "GND"
+   }
+  },
+  "C26": {
+   "Manufacturer Part": "CC0603KRX7R9BB104",
+   "Supplier Part": "C14663",
+   "Value": "100nF",
+   "pads": {
+    "1": "GND",
+    "2": "+3V3"
+   }
+  },
+  "D1": {
+   "Manufacturer Part": "B5819W SL",
+   "Supplier Part": "C8598",
+   "pads": {
+    "1": "~D1.1",
+    "2": "+5V_LOG"
+   }
+  },
+  "D2": {
+   "Manufacturer Part": "SMAJ5.0A",
+   "Supplier Part": "C2925443",
+   "pads": {
+    "1": "+5V_OUT",
+    "2": "GND"
+   }
+  },
+  "D3": {
+   "Manufacturer Part": "SMAJ15A",
+   "Supplier Part": "C19077535",
+   "pads": {
+    "1": "+12V_TOY",
+    "2": "GND"
+   }
+  },
+  "D57": {
+   "Manufacturer Part": "KT-0603R",
+   "Supplier Part": "C2286",
+   "pads": {
+    "1": "+5V_LOG",
+    "2": "~D57.2"
+   }
+  },
+  "D58": {
+   "Manufacturer Part": "KT-0603R",
+   "Supplier Part": "C2286",
+   "pads": {
+    "1": "+3V3",
+    "2": "~D58.2"
+   }
+  },
+  "F1": {
+   "Manufacturer Part": "1206L110/16NR",
+   "Supplier Part": "C7542961",
+   "pads": {
+    "1": "+5V_LOG",
+    "2": "+5V_OUT"
+   }
+  },
+  "F2": {
+   "Manufacturer Part": "0501015.WR1",
+   "Supplier Part": "C410346",
+   "pads": {
+    "1": "+5V_LEDT",
+    "2": "+5V_OUT"
+   }
+  },
+  "F3": {
+   "Manufacturer Part": "2920L800SL24GRG",
+   "Supplier Part": "C47345588",
+   "pads": {
+    "1": "+5V_LEDS",
+    "2": "+5V_OUT"
+   }
+  },
+  "F4": {
+   "Manufacturer Part": "2920L800SL24GRG",
+   "Supplier Part": "C47345588",
+   "pads": {
+    "1": "+5V_TOY",
+    "2": "+5V_OUT"
+   }
+  },
+  "F5": {
+   "Manufacturer Part": "0501020.WR",
+   "Supplier Part": "C371157",
+   "pads": {
+    "1": "+12V_TOY",
+    "2": "+12V_IN"
+   }
+  },
+  "J1": {
+   "Manufacturer Part": "DB301V-3.5-2P-GN-S",
+   "Supplier Part": "C695629",
+   "pads": {
+    "1": "BTN1",
+    "2": "BTN2"
+   }
+  },
+  "J2": {
+   "Manufacturer Part": "DB301V-3.5-2P-GN-S",
+   "Supplier Part": "C695629",
+   "pads": {
+    "1": "BTN3",
+    "2": "BTN4"
+   }
+  },
+  "J3": {
+   "Manufacturer Part": "DB301V-3.5-2P-GN-S",
+   "Supplier Part": "C695629",
+   "pads": {
+    "1": "BTN5",
+    "2": "BTN6"
+   }
+  },
+  "J4": {
+   "Manufacturer Part": "DB301V-3.5-2P-GN-S",
+   "Supplier Part": "C695629",
+   "pads": {
+    "1": "GND",
+    "2": "BTN7"
+   }
+  },
+  "J5": {
+   "Manufacturer Part": "DB301V-3.5-2P-GN-S",
+   "Supplier Part": "C695629",
+   "pads": {
+    "1": "BTN8",
+    "2": "BTN9"
+   }
+  },
+  "J6": {
+   "Manufacturer Part": "DB301V-3.5-2P-GN-S",
+   "Supplier Part": "C695629",
+   "pads": {
+    "1": "BTN10",
+    "2": "BTN11"
+   }
+  },
+  "J7": {
+   "Manufacturer Part": "DB301V-3.5-2P-GN-S",
+   "Supplier Part": "C695629",
+   "pads": {
+    "1": "BTN12",
+    "2": "GND"
+   }
+  },
+  "J8": {
+   "Manufacturer Part": "DB301V-3.5-2P-GN-S",
+   "Supplier Part": "C695629",
+   "pads": {
+    "1": "BTN13",
+    "2": "BTN14"
+   }
+  },
+  "J9": {
+   "Manufacturer Part": "DB301V-3.5-2P-GN-S",
+   "Supplier Part": "C695629",
+   "pads": {
+    "1": "BTN15",
+    "2": "GND"
+   }
+  },
+  "J10": {
+   "Manufacturer Part": "DB301V-3.5-2P-GN-S",
+   "Supplier Part": "C695629",
+   "pads": {
+    "1": "~D10.1",
+    "2": "~D10.2"
+   }
+  },
+  "J11": {
+   "Manufacturer Part": "DB301V-3.5-2P-GN-S",
+   "Supplier Part": "C695629",
+   "pads": {
+    "1": "~D11.1",
+    "2": "~D11.2"
+   }
+  },
+  "J12": {
+   "Manufacturer Part": "DB301V-3.5-2P-GN-S",
+   "Supplier Part": "C695629",
+   "pads": {
+    "1": "~D15.1",
+    "2": "~D15.2"
+   }
+  },
+  "J13": {
+   "Manufacturer Part": "DB301V-3.5-2P-GN-S",
+   "Supplier Part": "C695629",
+   "pads": {
+    "1": "~D16.1",
+    "2": "~D16.2"
+   }
+  },
+  "J14": {
+   "Manufacturer Part": "DB301V-3.5-2P-GN-S",
+   "Supplier Part": "C695629",
+   "pads": {
+    "1": "+12V_TOY",
+    "2": "~D18.1"
+   }
+  },
+  "J15": {
+   "Manufacturer Part": "DB301V-3.5-2P-GN-S",
+   "Supplier Part": "C695629",
+   "pads": {
+    "1": "+12V_TOY",
+    "2": "~D19.1"
+   }
+  },
+  "J16": {
+   "Manufacturer Part": "DB301V-3.5-2P-GN-S",
+   "Supplier Part": "C695629",
+   "pads": {
+    "1": "+12V_TOY",
+    "2": "~D20.1"
+   }
+  },
+  "J17": {
+   "Manufacturer Part": "DB301V-3.5-2P-GN-S",
+   "Supplier Part": "C695629",
+   "pads": {
+    "1": "+12V_TOY",
+    "2": "~D21.1"
+   }
+  },
+  "J18": {
+   "Manufacturer Part": "DB301V-3.5-2P-GN-S",
+   "Supplier Part": "C695629",
+   "pads": {
+    "1": "~D33.1",
+    "2": "~D33.2"
+   }
+  },
+  "J19": {
+   "Manufacturer Part": "DB301V-3.5-2P-GN-S",
+   "Supplier Part": "C695629",
+   "pads": {
+    "1": "~D36.1",
+    "2": "~D36.2"
+   }
+  },
+  "J20": {
+   "Manufacturer Part": "DB301V-3.5-2P-GN-S",
+   "Supplier Part": "C695629",
+   "pads": {
+    "1": "~D38.1",
+    "2": "~D38.2"
+   }
+  },
+  "J21": {
+   "Manufacturer Part": "DB301V-3.5-2P-GN-S",
+   "Supplier Part": "C695629",
+   "pads": {
+    "1": "~D39.1",
+    "2": "~D39.2"
+   }
+  },
+  "J22": {
+   "Manufacturer Part": "DB301V-3.5-2P-GN-S",
+   "Supplier Part": "C695629",
+   "pads": {
+    "1": "~D41.1",
+    "2": "~D41.2"
+   }
+  },
+  "J23": {
+   "Manufacturer Part": "DB301V-3.5-2P-GN-S",
+   "Supplier Part": "C695629",
+   "pads": {
+    "1": "~D44.1",
+    "2": "~D44.2"
+   }
+  },
+  "J24": {
+   "Manufacturer Part": "DB301V-3.5-2P-GN-S",
+   "Supplier Part": "C695629",
+   "pads": {
+    "1": "~D46.1",
+    "2": "~D46.2"
+   }
+  },
+  "J25": {
+   "Manufacturer Part": "DB301V-3.5-2P-GN-S",
+   "Supplier Part": "C695629",
+   "pads": {
+    "1": "~D47.1",
+    "2": "~D47.2"
+   }
+  },
+  "J26": {
+   "Manufacturer Part": "DB301V-3.5-2P-GN-S",
+   "Supplier Part": "C695629",
+   "pads": {
+    "1": "~D49.1",
+    "2": "~D49.2"
+   }
+  },
+  "J27": {
+   "Manufacturer Part": "DB301V-3.5-2P-GN-S",
+   "Supplier Part": "C695629",
+   "pads": {
+    "1": "~D52.1",
+    "2": "~D52.2"
+   }
+  },
+  "J28": {
+   "Manufacturer Part": "DB301V-3.5-2P-GN-S",
+   "Supplier Part": "C695629",
+   "pads": {
+    "1": "~D54.1",
+    "2": "~D54.2"
+   }
+  },
+  "J29": {
+   "Manufacturer Part": "DB301V-3.5-2P-GN-S",
+   "Supplier Part": "C695629",
+   "pads": {
+    "1": "~D55.1",
+    "2": "~D55.2"
+   }
+  },
+  "J30": {
+   "Manufacturer Part": "DB301V-3.5-3P-GN-S",
+   "Supplier Part": "C695630",
+   "pads": {
+    "1": "+5V_LOG",
+    "2": "GND",
+    "3": "D0'"
+   }
+  },
+  "J31": {
+   "Manufacturer Part": "WJ128V-5.0-03P-14-00A",
+   "Supplier Part": "C8270",
+   "pads": {
+    "1": "+5V_LEDT",
+    "2": "LED1_OUT",
+    "3": "GND"
+   }
+  },
+  "J32": {
+   "Manufacturer Part": "DB301V-3.5-3P-GN-S",
+   "Supplier Part": "C695630",
+   "pads": {
+    "1": "out_led2",
+    "2": "LED2_OUT",
+    "3": "GND"
+   }
+  },
+  "J33": {
+   "Manufacturer Part": "DB301V-3.5-3P-GN-S",
+   "Supplier Part": "C695630",
+   "pads": {
+    "1": "out_led3",
+    "2": "LED3_OUT",
+    "3": "GND"
+   }
+  },
+  "JP1": {
+   "Manufacturer Part": "HX PH254-01-03-Z-L11.5 pcb pin header",
+   "Supplier Part": "C52016391",
+   "pads": {
+    "1": "+5V_TOY",
+    "2": "~D10.1",
+    "3": "+12V_TOY"
+   }
+  },
+  "JP2": {
+   "Manufacturer Part": "HX PH254-01-03-Z-L11.5 pcb pin header",
+   "Supplier Part": "C52016391",
+   "pads": {
+    "1": "+5V_TOY",
+    "2": "~D11.1",
+    "3": "+12V_TOY"
+   }
+  },
+  "JP3": {
+   "Manufacturer Part": "HX PH254-01-03-Z-L11.5 pcb pin header",
+   "Supplier Part": "C52016391",
+   "pads": {
+    "1": "+5V_TOY",
+    "2": "~D15.1",
+    "3": "+12V_TOY"
+   }
+  },
+  "JP4": {
+   "Manufacturer Part": "HX PH254-01-03-Z-L11.5 pcb pin header",
+   "Supplier Part": "C52016391",
+   "pads": {
+    "1": "+5V_TOY",
+    "2": "~D16.1",
+    "3": "+12V_TOY"
+   }
+  },
+  "JP5": {
+   "Manufacturer Part": "HX PH254-01-03-Z-L11.5 pcb pin header",
+   "Supplier Part": "C52016391",
+   "pads": {
+    "1": "+5V_LEDS",
+    "2": "~D33.1",
+    "3": "+12V_TOY"
+   }
+  },
+  "JP6": {
+   "Manufacturer Part": "HX PH254-01-03-Z-L11.5 pcb pin header",
+   "Supplier Part": "C52016391",
+   "pads": {
+    "1": "+5V_LEDS",
+    "2": "~D36.1",
+    "3": "+12V_TOY"
+   }
+  },
+  "JP7": {
+   "Manufacturer Part": "HX PH254-01-03-Z-L11.5 pcb pin header",
+   "Supplier Part": "C52016391",
+   "pads": {
+    "1": "+5V_LEDS",
+    "2": "~D38.1",
+    "3": "+12V_TOY"
+   }
+  },
+  "JP8": {
+   "Manufacturer Part": "HX PH254-01-03-Z-L11.5 pcb pin header",
+   "Supplier Part": "C52016391",
+   "pads": {
+    "1": "+5V_LEDS",
+    "2": "~D39.1",
+    "3": "+12V_TOY"
+   }
+  },
+  "JP9": {
+   "Manufacturer Part": "HX PH254-01-03-Z-L11.5 pcb pin header",
+   "Supplier Part": "C52016391",
+   "pads": {
+    "1": "+5V_LEDS",
+    "2": "~D41.1",
+    "3": "+12V_TOY"
+   }
+  },
+  "JP10": {
+   "Manufacturer Part": "HX PH254-01-03-Z-L11.5 pcb pin header",
+   "Supplier Part": "C52016391",
+   "pads": {
+    "1": "+5V_LEDS",
+    "2": "~D44.1",
+    "3": "+12V_TOY"
+   }
+  },
+  "JP11": {
+   "Manufacturer Part": "HX PH254-01-03-Z-L11.5 pcb pin header",
+   "Supplier Part": "C52016391",
+   "pads": {
+    "1": "+5V_LEDS",
+    "2": "~D46.1",
+    "3": "+12V_TOY"
+   }
+  },
+  "JP12": {
+   "Manufacturer Part": "HX PH254-01-03-Z-L11.5 pcb pin header",
+   "Supplier Part": "C52016391",
+   "pads": {
+    "1": "+5V_LEDS",
+    "2": "~D47.1",
+    "3": "+12V_TOY"
+   }
+  },
+  "JP13": {
+   "Manufacturer Part": "HX PH254-01-03-Z-L11.5 pcb pin header",
+   "Supplier Part": "C52016391",
+   "pads": {
+    "1": "+5V_LEDS",
+    "2": "~D49.1",
+    "3": "+12V_TOY"
+   }
+  },
+  "JP14": {
+   "Manufacturer Part": "HX PH254-01-03-Z-L11.5 pcb pin header",
+   "Supplier Part": "C52016391",
+   "pads": {
+    "1": "+5V_LEDS",
+    "2": "~D52.1",
+    "3": "+12V_TOY"
+   }
+  },
+  "JP15": {
+   "Manufacturer Part": "HX PH254-01-03-Z-L11.5 pcb pin header",
+   "Supplier Part": "C52016391",
+   "pads": {
+    "1": "+5V_LEDS",
+    "2": "~D54.1",
+    "3": "+12V_TOY"
+   }
+  },
+  "JP16": {
+   "Manufacturer Part": "HX PH254-01-03-Z-L11.5 pcb pin header",
+   "Supplier Part": "C52016391",
+   "pads": {
+    "1": "+5V_LEDS",
+    "2": "~D55.1",
+    "3": "+12V_TOY"
+   }
+  },
+  "JP17": {
+   "Manufacturer Part": "HX PH254-01-03-Z-L11.5 pcb pin header",
+   "Supplier Part": "C52016391",
+   "pads": {
+    "1": "D0",
+    "2": "~JP17.2",
+    "3": "D0'"
+   }
+  },
+  "JP18": {
+   "Manufacturer Part": "HX PH254-01-03-Z-L11.5 pcb pin header",
+   "Supplier Part": "C52016391",
+   "pads": {
+    "1": "+5V_LEDT",
+    "2": "out_led2",
+    "3": "+12V_TOY"
+   }
+  },
+  "JP19": {
+   "Manufacturer Part": "HX PH254-01-03-Z-L11.5 pcb pin header",
+   "Supplier Part": "C52016391",
+   "pads": {
+    "1": "+5V_LEDT",
+    "2": "out_led3",
+    "3": "+12V_TOY"
+   }
+  },
+  "P1": {
+   "Manufacturer Part": "WJ128V-5.0-02P-14-00A",
+   "Supplier Part": "C8269",
+   "pads": {
+    "1": "+5V_IN",
+    "2": "GND"
+   }
+  },
+  "P2": {
+   "Manufacturer Part": "2.54-2*10P简牛",
+   "Supplier Part": "C3405",
+   "pads": {
+    "1": "ROW0_IN",
+    "2": "",
+    "3": "ROW1_IN",
+    "4": "COL00",
+    "5": "ROW2_IN",
+    "6": "COL01",
+    "7": "ROW3_IN",
+    "8": "COL02",
+    "9": "ROW4_IN",
+    "10": "COL03",
+    "11": "ROW5_IN",
+    "12": "COL04",
+    "13": "ROW6_IN",
+    "14": "COL05",
+    "15": "ROW7_IN",
+    "16": "COL06",
+    "17": "ROW8_IN",
+    "18": "",
+    "19": "ROW9_IN",
+    "20": "LED1_OUT"
+   }
+  },
+  "P3": {
+   "Manufacturer Part": "WJ128V-5.0-02P-14-00A",
+   "Supplier Part": "C8269",
+   "pads": {
+    "1": "+12V_IN",
+    "2": "GND"
+   }
+  },
+  "Q5": {
+   "Manufacturer Part": "AON6324",
+   "Supplier Part": "C431187",
+   "pads": {
+    "1": "GND",
+    "2": "GND",
+    "3": "GND",
+    "4": "~Q5.4",
+    "5": "~D18.1",
+    "6": "~D18.1",
+    "7": "~D18.1",
+    "8": "~D18.1",
+    "9": "~D18.1"
+   }
+  },
+  "Q6": {
+   "Manufacturer Part": "AON6324",
+   "Supplier Part": "C431187",
+   "pads": {
+    "1": "GND",
+    "2": "GND",
+    "3": "GND",
+    "4": "~Q6.4",
+    "5": "~D19.1",
+    "6": "~D19.1",
+    "7": "~D19.1",
+    "8": "~D19.1",
+    "9": "~D19.1"
+   }
+  },
+  "Q7": {
+   "Manufacturer Part": "AON6324",
+   "Supplier Part": "C431187",
+   "pads": {
+    "1": "GND",
+    "2": "GND",
+    "3": "GND",
+    "4": "~Q7.4",
+    "5": "~D20.1",
+    "6": "~D20.1",
+    "7": "~D20.1",
+    "8": "~D20.1",
+    "9": "~D20.1"
+   }
+  },
+  "Q8": {
+   "Manufacturer Part": "AON6324",
+   "Supplier Part": "C431187",
+   "pads": {
+    "1": "GND",
+    "2": "GND",
+    "3": "GND",
+    "4": "~Q8.4",
+    "5": "~D21.1",
+    "6": "~D21.1",
+    "7": "~D21.1",
+    "8": "~D21.1",
+    "9": "~D21.1"
+   }
+  },
+  "R10": {
+   "Manufacturer Part": "0603WAF1002T5E",
+   "Supplier Part": "C25804",
+   "Value": "10kΩ",
+   "pads": {
+    "1": "+3V3",
+    "2": "ROW4"
+   }
+  },
+  "R11": {
+   "Manufacturer Part": "0603WAF1001T5E",
+   "Supplier Part": "C21190",
+   "Value": "1kΩ",
+   "pads": {
+    "1": "ROW5",
+    "2": "ROW5_IN"
+   }
+  },
+  "R22": {
+   "Manufacturer Part": "0603WAF1002T5E",
+   "Supplier Part": "C25804",
+   "Value": "10kΩ",
+   "pads": {
+    "1": "+3V3",
+    "2": "ROW9"
+   }
+  },
+  "R23": {
+   "Manufacturer Part": "0603WAF1002T5E",
+   "Supplier Part": "C25804",
+   "Value": "10kΩ",
+   "pads": {
+    "1": "ROW10",
+    "2": "+3V3"
+   }
+  },
+  "R24": {
+   "Manufacturer Part": "0603WAF1002T5E",
+   "Supplier Part": "C25804",
+   "Value": "10kΩ",
+   "pads": {
+    "1": "ROW11",
+    "2": "+3V3"
+   }
+  },
+  "R30": {
+   "Manufacturer Part": "0603WAF4701T5E",
+   "Supplier Part": "C23162",
+   "Value": "4.7kΩ",
+   "pads": {
+    "1": "SDA",
+    "2": "+3V3"
+   }
+  },
+  "R31": {
+   "Manufacturer Part": "0603WAF4701T5E",
+   "Supplier Part": "C23162",
+   "Value": "4.7kΩ",
+   "pads": {
+    "1": "SCL",
+    "2": "+3V3"
+   }
+  },
+  "R32": {
+   "Manufacturer Part": "0603WAF1002T5E",
+   "Supplier Part": "C25804",
+   "Value": "10kΩ",
+   "pads": {
+    "1": "MCP_RST",
+    "2": "+3V3"
+   }
+  },
+  "R95": {
+   "Manufacturer Part": "0603WAF4701T5E",
+   "Supplier Part": "C23162",
+   "Value": "4.7kΩ",
+   "pads": {
+    "1": "LED1_IN",
+    "2": "GND"
+   }
+  },
+  "R96": {
+   "Manufacturer Part": "0603WAF3300T5E",
+   "Supplier Part": "C23138",
+   "Value": "330Ω",
+   "pads": {
+    "1": "~R96.1",
+    "2": "LED1_OUT"
+   }
+  },
+  "R97": {
+   "Manufacturer Part": "0603WAF8201T5E",
+   "Supplier Part": "C25981",
+   "Value": "8.2kΩ",
+   "pads": {
+    "1": "PIEZO_ADC",
+    "2": "GND"
+   }
+  },
+  "R98": {
+   "Manufacturer Part": "0603WAF4701T5E",
+   "Supplier Part": "C23162",
+   "Value": "4.7kΩ",
+   "pads": {
+    "1": "LED2_IN",
+    "2": "GND"
+   }
+  },
+  "R99": {
+   "Manufacturer Part": "0603WAF3300T5E",
+   "Supplier Part": "C23138",
+   "Value": "330Ω",
+   "pads": {
+    "1": "~R99.1",
+    "2": "LED2_OUT"
+   }
+  },
+  "R100": {
+   "Manufacturer Part": "0603WAF3300T5E",
+   "Supplier Part": "C23138",
+   "Value": "330Ω",
+   "pads": {
+    "1": "LED3_OUT",
+    "2": "~R100.2"
+   }
+  },
+  "R101": {
+   "Manufacturer Part": "0603WAF4701T5E",
+   "Supplier Part": "C23162",
+   "Value": "4.7kΩ",
+   "pads": {
+    "1": "GND",
+    "2": "LED3_IN"
+   }
+  },
+  "R102": {
+   "Manufacturer Part": "0603WAF5101T5E",
+   "Supplier Part": "C23186",
+   "Value": "5.1kΩ",
+   "pads": {
+    "1": "PIEZO_ADC",
+    "2": "~JP17.2"
+   }
+  },
+  "R103": {
+   "Manufacturer Part": "0603WAF2201T5E",
+   "Supplier Part": "C4190",
+   "Value": "2.2kΩ",
+   "pads": {
+    "1": "+5V_LOG",
+    "2": "D0"
+   }
+  },
+  "R104": {
+   "Manufacturer Part": "0603WAF1001T5E",
+   "Supplier Part": "C21190",
+   "Value": "1kΩ",
+   "pads": {
+    "1": "OUT/B",
+    "2": "~D57.2"
+   }
+  },
+  "R105": {
+   "Manufacturer Part": "0603WAF1002T5E",
+   "Supplier Part": "C25804",
+   "Value": "10kΩ",
+   "pads": {
+    "1": "~C25.1",
+    "2": "+5V_LOG"
+   }
+  },
+  "R106": {
+   "Manufacturer Part": "3314J-1-103E",
+   "Supplier Part": "C36376",
+   "Value": "10kΩ",
+   "pads": {
+    "1": "GND",
+    "2": "~R106.2",
+    "3": "+5V_LOG"
+   }
+  },
+  "R107": {
+   "Manufacturer Part": "0603WAF1002T5E",
+   "Supplier Part": "C25804",
+   "Value": "10kΩ",
+   "pads": {
+    "1": "+5V_LOG",
+    "2": "~R107.2"
+   }
+  },
+  "R108": {
+   "Manufacturer Part": "0603WAF1002T5E",
+   "Supplier Part": "C25804",
+   "Value": "10kΩ",
+   "pads": {
+    "1": "~R107.2",
+    "2": "GND"
+   }
+  },
+  "R109": {
+   "Manufacturer Part": "0603WAF1001T5E",
+   "Supplier Part": "C21190",
+   "Value": "1kΩ",
+   "pads": {
+    "1": "LED_VIE",
+    "2": "~D58.2"
+   }
+  },
+  "SW1": {
+   "Manufacturer Part": "SW420",
+   "Supplier Part": "C2874843",
+   "bom": false,
+   "pads": {
+    "1": "~C25.1",
+    "2": "GND"
+   }
+  },
+  "U1": {
+   "Value": "Raspberry Pi Pico / Pico 2",
+   "bom": false,
+   "pads": {
+    "1": "ROW0",
+    "2": "ROW1",
+    "3": "GND",
+    "4": "ROW2",
+    "5": "ROW3",
+    "6": "ROW4",
+    "7": "ROW5",
+    "8": "GND",
+    "9": "ROW6",
+    "10": "ROW7",
+    "11": "ROW8",
+    "12": "ROW9",
+    "13": "GND",
+    "14": "ROW10",
+    "15": "ROW11",
+    "16": "GP12",
+    "17": "GP13",
+    "18": "GND",
+    "19": "GP14",
+    "20": "GP15",
+    "21": "LED_VIE",
+    "22": "LED1_IN",
+    "23": "GND",
+    "24": "BTN15",
+    "25": "MCP_INT",
+    "26": "SDA",
+    "27": "SCL",
+    "28": "GND",
+    "29": "LED2_IN",
+    "30": "",
+    "31": "PIEZO_ADC",
+    "32": "LED3_IN",
+    "33": "GND",
+    "34": "MCP_RST",
+    "35": "",
+    "36": "+3V3",
+    "37": "",
+    "38": "GND",
+    "39": "~D1.1",
+    "40": ""
+   }
+  },
+  "U2": {
+   "Manufacturer Part": "0501020.WR",
+   "Supplier Part": "C371157",
+   "pads": {
+    "1": "+5V_OUT",
+    "2": "+5V_IN"
+   }
+  },
+  "U3": {
+   "Manufacturer Part": "MCP23017-E/SO",
+   "Supplier Part": "C47023",
+   "pads": {
+    "1": "BTN14",
+    "2": "BTN13",
+    "3": "BTN12",
+    "4": "BTN11",
+    "5": "BTN10",
+    "6": "BTN9",
+    "7": "BTN8",
+    "8": "",
+    "9": "+3V3",
+    "10": "GND",
+    "11": "",
+    "12": "SCL",
+    "13": "SDA",
+    "14": "",
+    "15": "GND",
+    "16": "GND",
+    "17": "GND",
+    "18": "MCP_RST",
+    "19": "",
+    "20": "MCP_INT",
+    "21": "BTN1",
+    "22": "BTN2",
+    "23": "BTN3",
+    "24": "BTN4",
+    "25": "BTN5",
+    "26": "BTN6",
+    "27": "BTN7",
+    "28": ""
+   }
+  },
+  "U6": {
+   "Manufacturer Part": "CD74HC154M96",
+   "Supplier Part": "C2832236",
+   "pads": {
+    "1": "~D26.1",
+    "2": "~D27.1",
+    "3": "~D28.1",
+    "4": "~D29.1",
+    "5": "~D30.1",
+    "6": "~D31.1",
+    "7": "~D32.1",
+    "8": "",
+    "9": "",
+    "10": "",
+    "11": "",
+    "12": "GND",
+    "13": "",
+    "14": "",
+    "15": "",
+    "16": "",
+    "17": "",
+    "18": "GND",
+    "19": "GND",
+    "20": "GP12",
+    "21": "GP13",
+    "22": "GP14",
+    "23": "GP15",
+    "24": "+3V3"
+   }
+  },
+  "U7": {
+   "Manufacturer Part": "SN74AHCT125DR",
+   "Supplier Part": "C155176",
+   "pads": {
+    "1": "GND",
+    "2": "LED1_IN",
+    "3": "~R96.1",
+    "4": "GND",
+    "5": "LED2_IN",
+    "6": "~R99.1",
+    "7": "GND",
+    "8": "~R100.2",
+    "9": "LED3_IN",
+    "10": "GND",
+    "11": "",
+    "12": "GND",
+    "13": "GND",
+    "14": "+5V_LOG"
+   }
+  },
+  "U8": {
+   "Manufacturer Part": "LM393DR2G",
+   "Supplier Part": "C7955",
+   "pads": {
+    "1": "D0",
+    "2": "~R106.2",
+    "3": "~C25.1",
+    "4": "GND",
+    "5": "~R107.2",
+    "6": "D0",
+    "7": "OUT/B",
+    "8": "+5V_LOG"
+   }
+  }
+ }
+}

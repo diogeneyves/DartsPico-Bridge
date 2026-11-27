@@ -1,0 +1,836 @@
+{
+  "_comment": "Regenere le 2026-11-21 (version de 11:33 : reseau LED_VIE sur GP16), verifie le 2026-11-22 (version de 10:08 : plan de masse et vias retouches, netlist identique) depuis le projet EasyEDA hardware/EasyEda/Darts.epro2 (non commite), netlist extraite par tools/epro_netlist.py (valeurs du schema, reseaux des pastilles du PCB) et comparee a ce fichier. Structure et textes repris de la version precedente (export 2026-11-03, mise a jour a la main le 2026-11-07). Connecteur P2 mis a jour le 2026-11-25 d'apres la version de 18:50 (P2 refait par l'auteur sur la nappe de l'ED110, verifie par tools/epro_netlist.py) ; tirages 10k de ROW10 et ROW11 decides le 2026-11-25 (specification, complement 65), au schema de l'export du 2026-11-25 (19:40) : R23 et R24 ; R22 (tirage de ROW9), R23 et R24 ajoutes le 2026-11-26 avec l'accord de l'auteur. Controle avant commande : tools/epro_netlist.py check (specification, complement 66), extrait hardware/netlist.json. Routage du PCB pas fini, ignore. Module Pico 2 (RP2350), specification v0.3.14. A regenerer si la carte change.",
+  "source_project": "Darts.epro2 du 2026-11-25, export de 19:40 (EasyEDA Pro 3.2.209)",
+  "pico": {
+    "module": "Raspberry Pi Pico 2 (RP2350A, revision A2 ou A4)",
+    "erratum": "RP2350-E9 : la conception doit le tolerer (carte de test A2). Jamais de tirage interne vers le bas ; GP19 en PULL_UP, GP26 lu par l'ADC entree numerique coupee, R97 = 8.2k ; tirages 4.7k vers GND sur GP17, GP22, GP27 (R95, R98, R101) ; GP16 = voyant de vie (specification 3.1.1 et 3.1.2).",
+    "pins": {
+      "GP0": {
+        "net": "ROW0",
+        "physical_pin": 1
+      },
+      "GP1": {
+        "net": "ROW1",
+        "physical_pin": 2
+      },
+      "GP2": {
+        "net": "ROW2",
+        "physical_pin": 4
+      },
+      "GP3": {
+        "net": "ROW3",
+        "physical_pin": 5
+      },
+      "GP4": {
+        "net": "ROW4",
+        "physical_pin": 6
+      },
+      "GP5": {
+        "net": "ROW5",
+        "physical_pin": 7
+      },
+      "GP6": {
+        "net": "ROW6",
+        "physical_pin": 9
+      },
+      "GP7": {
+        "net": "ROW7",
+        "physical_pin": 10
+      },
+      "GP8": {
+        "net": "ROW8",
+        "physical_pin": 11
+      },
+      "GP9": {
+        "net": "ROW9",
+        "physical_pin": 12
+      },
+      "GP10": {
+        "net": "ROW10",
+        "physical_pin": 14
+      },
+      "GP11": {
+        "net": "ROW11",
+        "physical_pin": 15
+      },
+      "GP12": {
+        "net": "GP12",
+        "physical_pin": 16
+      },
+      "GP13": {
+        "net": "GP13",
+        "physical_pin": 17
+      },
+      "GP14": {
+        "net": "GP14",
+        "physical_pin": 19
+      },
+      "GP15": {
+        "net": "GP15",
+        "physical_pin": 20
+      },
+      "GP16": {
+        "net": "LED_VIE",
+        "physical_pin": 21,
+        "function": "voyant de vie : R109 1k puis LED rouge D58 (KT-0603R) vers +3V3, allumee au niveau bas"
+      },
+      "GP17": {
+        "net": "LED1_IN",
+        "physical_pin": 22
+      },
+      "GP18": {
+        "net": "BTN15",
+        "physical_pin": 24
+      },
+      "GP19": {
+        "net": "MCP_INT",
+        "physical_pin": 25
+      },
+      "GP20": {
+        "net": "SDA",
+        "physical_pin": 26
+      },
+      "GP21": {
+        "net": "SCL",
+        "physical_pin": 27
+      },
+      "GP22": {
+        "net": "LED2_IN",
+        "physical_pin": 29
+      },
+      "GP26": {
+        "net": "PIEZO_ADC",
+        "physical_pin": 31
+      },
+      "GP27": {
+        "net": "LED3_IN",
+        "physical_pin": 32
+      },
+      "GP28": {
+        "net": "MCP_RST",
+        "physical_pin": 34
+      }
+    },
+    "power": {
+      "VSYS_pin39": "via diode Schottky D1 (B5819W) depuis +5V_LOG",
+      "VBUS_pin40": "non connecte",
+      "3V3_pin36": "net +3V3"
+    },
+    "free_gpio": [],
+    "ref": "U1",
+    "symbol_note": "Composant EasyEDA U1 : nom 'Pico2', valeur 'Raspberry Pi Pico / Pico 2' (brochage du Pico H, identique a celui du Pico 2 monte)."
+  },
+  "heartbeat": {
+    "gpio": "GP16",
+    "physical_pin": 21,
+    "active": "bas",
+    "led": {
+      "ref": "D58",
+      "part": "KT-0603R",
+      "color": "rouge",
+      "anode": "+3V3",
+      "cathode": "R109.2"
+    },
+    "resistor": {
+      "ref": "R109",
+      "value": "1k",
+      "pins": "1:GP16 2:cathode de D58"
+    },
+    "rule": "1 Hz normal, 5 Hz erreur, fige (eteint ou allume) = code bloque, eteint avant le firmware (specification 3.1.2)",
+    "net": "LED_VIE"
+  },
+  "i2c": {
+    "bus": "I2C0",
+    "sda": "GP20",
+    "scl": "GP21",
+    "pullups": "R30, R31 4.7k vers +3V3",
+    "mcp_reset": {
+      "gpio": "GP28",
+      "pullup": "R32 10k vers +3V3"
+    },
+    "mcp_int": {
+      "gpio": "GP19",
+      "source": "U3 INTA seulement (INTB non connecte)"
+    }
+  },
+  "mcp23017": {
+    "MCP1_U3": {
+      "address": "0x20",
+      "A0A1A2": "GND/GND/GND",
+      "role": "boutons",
+      "inputs": {
+        "GPA0..GPA6": "BTN1..BTN7",
+        "GPB6..GPB0": "BTN8..BTN14"
+      },
+      "unused": [
+        "GPA7",
+        "GPB7"
+      ],
+      "note": "GPA7/GPB7 jamais en entree (erratum Microchip, fiche rev. D). IOCON.MIRROR=1 car seul INTA est relie."
+    },
+    "MCP2_U4": {
+      "address": "0x21",
+      "A0A1A2": "3V3/GND/GND",
+      "role": "Toys",
+      "outputs": {
+        "GPA0..GPA7": "T1_CMD..T8_CMD"
+      },
+      "free": [
+        "GPB0..GPB7"
+      ]
+    },
+    "MCP3_U5": {
+      "address": "0x22",
+      "A0A1A2": "GND/3V3/GND",
+      "role": "voyants",
+      "outputs": {
+        "GPA0..GPA7": "V1_CMD..V8_CMD",
+        "GPB0..GPB3": "V9_CMD..V12_CMD"
+      },
+      "free": [
+        "GPB4..GPB7"
+      ]
+    }
+  },
+  "buttons": [
+    {
+      "id": "BTN1",
+      "function": "UP",
+      "source": {
+        "chip": "MCP1_U3",
+        "pin": "GPA0"
+      },
+      "connector": "J1.1"
+    },
+    {
+      "id": "BTN2",
+      "function": "DOWN",
+      "source": {
+        "chip": "MCP1_U3",
+        "pin": "GPA1"
+      },
+      "connector": "J1.2"
+    },
+    {
+      "id": "BTN3",
+      "function": "LEFT",
+      "source": {
+        "chip": "MCP1_U3",
+        "pin": "GPA2"
+      },
+      "connector": "J2.1"
+    },
+    {
+      "id": "BTN4",
+      "function": "RIGHT",
+      "source": {
+        "chip": "MCP1_U3",
+        "pin": "GPA3"
+      },
+      "connector": "J2.2"
+    },
+    {
+      "id": "BTN5",
+      "function": "PLUS",
+      "source": {
+        "chip": "MCP1_U3",
+        "pin": "GPA4"
+      },
+      "connector": "J3.1"
+    },
+    {
+      "id": "BTN6",
+      "function": "MINUS",
+      "source": {
+        "chip": "MCP1_U3",
+        "pin": "GPA5"
+      },
+      "connector": "J3.2"
+    },
+    {
+      "id": "BTN7",
+      "function": "VALIDATE",
+      "source": {
+        "chip": "MCP1_U3",
+        "pin": "GPA6"
+      },
+      "connector": "J4.2"
+    },
+    {
+      "id": "BTN8",
+      "function": "CANCEL",
+      "source": {
+        "chip": "MCP1_U3",
+        "pin": "GPB6"
+      },
+      "connector": "J5.1"
+    },
+    {
+      "id": "BTN9",
+      "function": "NEXTPLAYER",
+      "source": {
+        "chip": "MCP1_U3",
+        "pin": "GPB5"
+      },
+      "connector": "J5.2"
+    },
+    {
+      "id": "BTN10",
+      "function": "BACK",
+      "source": {
+        "chip": "MCP1_U3",
+        "pin": "GPB4"
+      },
+      "connector": "J6.1"
+    },
+    {
+      "id": "BTN11",
+      "function": "GAMEBUTTON",
+      "source": {
+        "chip": "MCP1_U3",
+        "pin": "GPB3"
+      },
+      "connector": "J6.2"
+    },
+    {
+      "id": "BTN12",
+      "function": "VOLUME_UP",
+      "source": {
+        "chip": "MCP1_U3",
+        "pin": "GPB2"
+      },
+      "connector": "J7.1"
+    },
+    {
+      "id": "BTN13",
+      "function": "VOLUME_DOWN",
+      "source": {
+        "chip": "MCP1_U3",
+        "pin": "GPB1"
+      },
+      "connector": "J8.1"
+    },
+    {
+      "id": "BTN14",
+      "function": "VOLUME_MUTE",
+      "source": {
+        "chip": "MCP1_U3",
+        "pin": "GPB0"
+      },
+      "connector": "J8.2"
+    },
+    {
+      "id": "BTN15",
+      "function": "CPTPLAYER",
+      "source": {
+        "chip": "PICO",
+        "pin": "GP18"
+      },
+      "connector": "J9.1"
+    }
+  ],
+  "button_connectors": {
+    "_comment": "borniers 2 points ; liste = [broche 1, broche 2] (netlist du 2026-11-07)",
+    "J1": {
+      "1": "BTN1",
+      "2": "BTN2"
+    },
+    "J2": {
+      "1": "BTN3",
+      "2": "BTN4"
+    },
+    "J3": {
+      "1": "BTN5",
+      "2": "BTN6"
+    },
+    "J4": {
+      "1": "GND",
+      "2": "BTN7"
+    },
+    "J5": {
+      "1": "BTN8",
+      "2": "BTN9"
+    },
+    "J6": {
+      "1": "BTN10",
+      "2": "BTN11"
+    },
+    "J7": {
+      "1": "BTN12",
+      "2": "GND"
+    },
+    "J8": {
+      "1": "BTN13",
+      "2": "BTN14"
+    },
+    "J9": {
+      "1": "BTN15",
+      "2": "GND"
+    }
+  },
+  "toys": [
+    {
+      "id": "TOY1",
+      "net": "T1_CMD",
+      "chip": "MCP2_U4",
+      "pin": "GPA0",
+      "connector": "J10",
+      "mosfet": "AO3400A",
+      "supply_jumper": {
+        "ref": "JP1",
+        "pin1": "+5V_TOY",
+        "pin3": "+12V_TOY"
+      },
+      "warning": "ATTENTION : une charge 5 V alimentee en +12V_TOY est detruite. Verifier le cavalier avant de brancher."
+    },
+    {
+      "id": "TOY2",
+      "net": "T2_CMD",
+      "chip": "MCP2_U4",
+      "pin": "GPA1",
+      "connector": "J11",
+      "mosfet": "AO3400A",
+      "supply_jumper": {
+        "ref": "JP2",
+        "pin1": "+5V_TOY",
+        "pin3": "+12V_TOY"
+      },
+      "warning": "ATTENTION : une charge 5 V alimentee en +12V_TOY est detruite. Verifier le cavalier avant de brancher."
+    },
+    {
+      "id": "TOY3",
+      "net": "T3_CMD",
+      "chip": "MCP2_U4",
+      "pin": "GPA2",
+      "connector": "J12",
+      "mosfet": "AO3400A",
+      "supply_jumper": {
+        "ref": "JP3",
+        "pin1": "+5V_TOY",
+        "pin3": "+12V_TOY"
+      },
+      "warning": "ATTENTION : une charge 5 V alimentee en +12V_TOY est detruite. Verifier le cavalier avant de brancher."
+    },
+    {
+      "id": "TOY4",
+      "net": "T4_CMD",
+      "chip": "MCP2_U4",
+      "pin": "GPA3",
+      "connector": "J13",
+      "mosfet": "AO3400A",
+      "supply_jumper": {
+        "ref": "JP4",
+        "pin1": "+5V_TOY",
+        "pin3": "+12V_TOY"
+      },
+      "warning": "ATTENTION : une charge 5 V alimentee en +12V_TOY est detruite. Verifier le cavalier avant de brancher."
+    },
+    {
+      "id": "TOY5",
+      "net": "T5_CMD",
+      "chip": "MCP2_U4",
+      "pin": "GPA4",
+      "connector": "J14",
+      "mosfet": "AON6324 (Q5)",
+      "supply": "+12V_TOY (fixe, sans cavalier)"
+    },
+    {
+      "id": "TOY6",
+      "net": "T6_CMD",
+      "chip": "MCP2_U4",
+      "pin": "GPA5",
+      "connector": "J15",
+      "mosfet": "AON6324 (Q6)",
+      "supply": "+12V_TOY (fixe, sans cavalier)"
+    },
+    {
+      "id": "TOY7",
+      "net": "T7_CMD",
+      "chip": "MCP2_U4",
+      "pin": "GPA6",
+      "connector": "J16",
+      "mosfet": "AON6324 (Q7)",
+      "supply": "+12V_TOY (fixe, sans cavalier)"
+    },
+    {
+      "id": "TOY8",
+      "net": "T8_CMD",
+      "chip": "MCP2_U4",
+      "pin": "GPA7",
+      "connector": "J17",
+      "mosfet": "AON6324 (Q8)",
+      "supply": "+12V_TOY (fixe, sans cavalier)"
+    }
+  ],
+  "lights": [
+    {
+      "id": "V1",
+      "net": "V1_CMD",
+      "chip": "MCP3_U5",
+      "pin": "GPA0",
+      "connector": "J18",
+      "supply_jumper": {
+        "ref": "JP5",
+        "pin1": "+5V_LEDS",
+        "pin3": "+12V_TOY"
+      },
+      "warning": "ATTENTION : une charge 5 V alimentee en +12V_TOY est detruite. Verifier le cavalier avant de brancher."
+    },
+    {
+      "id": "V2",
+      "net": "V2_CMD",
+      "chip": "MCP3_U5",
+      "pin": "GPA1",
+      "connector": "J19",
+      "supply_jumper": {
+        "ref": "JP6",
+        "pin1": "+5V_LEDS",
+        "pin3": "+12V_TOY"
+      },
+      "warning": "ATTENTION : une charge 5 V alimentee en +12V_TOY est detruite. Verifier le cavalier avant de brancher."
+    },
+    {
+      "id": "V3",
+      "net": "V3_CMD",
+      "chip": "MCP3_U5",
+      "pin": "GPA2",
+      "connector": "J20",
+      "supply_jumper": {
+        "ref": "JP7",
+        "pin1": "+5V_LEDS",
+        "pin3": "+12V_TOY"
+      },
+      "warning": "ATTENTION : une charge 5 V alimentee en +12V_TOY est detruite. Verifier le cavalier avant de brancher."
+    },
+    {
+      "id": "V4",
+      "net": "V4_CMD",
+      "chip": "MCP3_U5",
+      "pin": "GPA3",
+      "connector": "J21",
+      "supply_jumper": {
+        "ref": "JP8",
+        "pin1": "+5V_LEDS",
+        "pin3": "+12V_TOY"
+      },
+      "warning": "ATTENTION : une charge 5 V alimentee en +12V_TOY est detruite. Verifier le cavalier avant de brancher."
+    },
+    {
+      "id": "V5",
+      "net": "V5_CMD",
+      "chip": "MCP3_U5",
+      "pin": "GPA4",
+      "connector": "J22",
+      "supply_jumper": {
+        "ref": "JP9",
+        "pin1": "+5V_LEDS",
+        "pin3": "+12V_TOY"
+      },
+      "warning": "ATTENTION : une charge 5 V alimentee en +12V_TOY est detruite. Verifier le cavalier avant de brancher."
+    },
+    {
+      "id": "V6",
+      "net": "V6_CMD",
+      "chip": "MCP3_U5",
+      "pin": "GPA5",
+      "connector": "J23",
+      "supply_jumper": {
+        "ref": "JP10",
+        "pin1": "+5V_LEDS",
+        "pin3": "+12V_TOY"
+      },
+      "warning": "ATTENTION : une charge 5 V alimentee en +12V_TOY est detruite. Verifier le cavalier avant de brancher."
+    },
+    {
+      "id": "V7",
+      "net": "V7_CMD",
+      "chip": "MCP3_U5",
+      "pin": "GPA6",
+      "connector": "J24",
+      "supply_jumper": {
+        "ref": "JP11",
+        "pin1": "+5V_LEDS",
+        "pin3": "+12V_TOY"
+      },
+      "warning": "ATTENTION : une charge 5 V alimentee en +12V_TOY est detruite. Verifier le cavalier avant de brancher."
+    },
+    {
+      "id": "V8",
+      "net": "V8_CMD",
+      "chip": "MCP3_U5",
+      "pin": "GPA7",
+      "connector": "J25",
+      "supply_jumper": {
+        "ref": "JP12",
+        "pin1": "+5V_LEDS",
+        "pin3": "+12V_TOY"
+      },
+      "warning": "ATTENTION : une charge 5 V alimentee en +12V_TOY est detruite. Verifier le cavalier avant de brancher."
+    },
+    {
+      "id": "V9",
+      "net": "V9_CMD",
+      "chip": "MCP3_U5",
+      "pin": "GPB0",
+      "connector": "J26",
+      "supply_jumper": {
+        "ref": "JP13",
+        "pin1": "+5V_LEDS",
+        "pin3": "+12V_TOY"
+      },
+      "warning": "ATTENTION : une charge 5 V alimentee en +12V_TOY est detruite. Verifier le cavalier avant de brancher."
+    },
+    {
+      "id": "V10",
+      "net": "V10_CMD",
+      "chip": "MCP3_U5",
+      "pin": "GPB1",
+      "connector": "J27",
+      "supply_jumper": {
+        "ref": "JP14",
+        "pin1": "+5V_LEDS",
+        "pin3": "+12V_TOY"
+      },
+      "warning": "ATTENTION : une charge 5 V alimentee en +12V_TOY est detruite. Verifier le cavalier avant de brancher."
+    },
+    {
+      "id": "V11",
+      "net": "V11_CMD",
+      "chip": "MCP3_U5",
+      "pin": "GPB2",
+      "connector": "J28",
+      "supply_jumper": {
+        "ref": "JP15",
+        "pin1": "+5V_LEDS",
+        "pin3": "+12V_TOY"
+      },
+      "warning": "ATTENTION : une charge 5 V alimentee en +12V_TOY est detruite. Verifier le cavalier avant de brancher."
+    },
+    {
+      "id": "V12",
+      "net": "V12_CMD",
+      "chip": "MCP3_U5",
+      "pin": "GPB3",
+      "connector": "J29",
+      "supply_jumper": {
+        "ref": "JP16",
+        "pin1": "+5V_LEDS",
+        "pin3": "+12V_TOY"
+      },
+      "warning": "ATTENTION : une charge 5 V alimentee en +12V_TOY est detruite. Verifier le cavalier avant de brancher."
+    }
+  ],
+  "lights_default_mapping_raspydarts": {
+    "LIGHT_NEXTPLAYER": "V1",
+    "LIGHT_BACK": "V2",
+    "LIGHT_NAVIGATE": "V3",
+    "LIGHT_VALIDATE": "V4",
+    "LIGHT_LASER": "V5",
+    "LIGHT_FLASH": "V6",
+    "LIGHT_PLAYERS": "V7",
+    "LIGHT_CELEBRATION": "V8",
+    "LIGHT_CELEBRATION2": "V9",
+    "LIGHT_LIGHT": "V10",
+    "_status": "PROPOSITION, a confirmer"
+  },
+  "led_outputs": [
+    {
+      "channel": 0,
+      "name": "DATA_TARGET_LED",
+      "gpio": "GP17",
+      "buffer": "74AHCT125 (U7) 1A->1Y, R96 330R",
+      "connector": "J31 (1:+5V_LEDT 2:LED1_OUT 3:GND) ; aussi P2.20 (vers le PCB de repartition)",
+      "pulldown": "R95 4.7k vers GND, pres de U7 (anti-parasites au demarrage, erratum E9)"
+    },
+    {
+      "channel": 1,
+      "name": "DATA_LED-STRIP",
+      "gpio": "GP22",
+      "buffer": "74AHCT125 (U7) 2A->2Y, R99 330R",
+      "connector": "J32 (1:+5V_LEDT ou +12V_TOY selon JP18 2:LED2_OUT 3:GND)",
+      "supply_jumper": {
+        "ref": "JP18",
+        "pin1": "+5V_LEDT",
+        "pin3": "+12V_TOY",
+        "common": "J32.1"
+      },
+      "warning": "ATTENTION : un ruban 5 V alimente en +12V_TOY est detruit. Verifier le cavalier avant de brancher.",
+      "pulldown": "R98 4.7k vers GND, pres de U7 (anti-parasites au demarrage, erratum E9)"
+    },
+    {
+      "channel": 2,
+      "name": "DATA_OPTION_SECOURS",
+      "gpio": "GP27",
+      "buffer": "74AHCT125 (U7) 3A->3Y, R100 330R",
+      "connector": "J33 (1:+5V_LEDT ou +12V_TOY selon JP19 2:LED3_OUT 3:GND)",
+      "supply_jumper": {
+        "ref": "JP19",
+        "pin1": "+5V_LEDT",
+        "pin3": "+12V_TOY",
+        "common": "J33.1"
+      },
+      "warning": "ATTENTION : un ruban 5 V alimente en +12V_TOY est detruit. Verifier le cavalier avant de brancher.",
+      "pulldown": "R101 4.7k vers GND, pres de U7 (anti-parasites au demarrage, erratum E9)"
+    }
+  ],
+  "shock": {
+    "gpio": "GP26",
+    "net": "PIEZO_ADC",
+    "path": "SW-420 (SW1) + LM393 (U8) -> D0 ; ou module externe sur J30 (1:+5V_LOG 2:GND 3:D0') ; cavalier JP17 choisit D0 / D0' ; diviseur R102 5.1k + R97 8.2k vers GP26",
+    "comparator": {
+      "ref": "U8",
+      "part": "LM393",
+      "output_a": {
+        "pin": 1,
+        "net": "D0",
+        "pullup": "R103 2.2k vers +5V_LOG"
+      },
+      "output_b": {
+        "pin": 7,
+        "net": "OUT/B",
+        "indicator": "LED temoin D57 par R104 1k"
+      },
+      "threshold": {
+        "sensor_pullup": "R105 10k (tirage SW-420), C25 100 nF",
+        "pin2": "R106 potentiometre 10k (seuil reglable)",
+        "pin5": "R107 10k / R108 10k, pont de reference 2.5 V"
+      },
+      "gp26_high_v": {
+        "carte": 2.65,
+        "module_externe_5V": 3.08
+      }
+    },
+    "polarity": "a mesurer au banc",
+    "gp18": "utilise pour BTN15",
+    "jumper": {
+      "ref": "JP17",
+      "pin1": "D0 (SW-420 de la carte)",
+      "pin3": "D0' (module externe sur J30)"
+    }
+  },
+  "matrix": {
+    "logic": "active a 0 : la colonne choisie est a 0 V, une ligne lue a 0 = contact ; pas de tirage interne du Pico",
+    "settle_us": 50,
+    "settle_note": "attendre environ 50 us apres chaque changement de colonne (filtre 10 kOhm x 1 nF)",
+    "rows": {
+      "count": 12,
+      "gpio": "GP0..GP11",
+      "nets": "ROW0..ROW11",
+      "direction": "entrees",
+      "on_connector": 10,
+      "conditioning": "ROW0..ROW9 : 1 kOhm en serie (vers ROWn_IN), 10 kOhm de tirage vers +3V3, 1 nF vers GND ; ROW10 et ROW11 : tirage 10 kOhm vers +3V3 seulement, non reliees a P2 (complement 65)",
+      "pullup_only": {
+        "ROW10": {
+          "gpio": "GP10",
+          "pullup": "10k vers +3V3",
+          "part": "0603WAF1002T5E",
+          "lcsc": "C25804"
+        },
+        "ROW11": {
+          "gpio": "GP11",
+          "pullup": "10k vers +3V3",
+          "part": "0603WAF1002T5E",
+          "lcsc": "C25804"
+        }
+      },
+      "pullup_only_note": "tirages de ROW10 et ROW11 : R23 et R24 (R10 et R11 sont le tirage de ROW4 et la serie de ROW5) ; logiciel a 12 rangees, ROW10 et ROW11 au repos sur cette carte",
+      "pullup_resistors": {
+        "R22": {
+          "role": "tirage de ROW9 vers +3V3",
+          "value": "10k",
+          "part": "0603WAF1002T5E",
+          "lcsc": "C25804",
+          "pads": {
+            "1": "+3V3",
+            "2": "ROW9"
+          }
+        },
+        "R23": {
+          "role": "tirage de ROW10 vers +3V3 (seul conditionnement de ROW10)",
+          "value": "10k",
+          "part": "0603WAF1002T5E",
+          "lcsc": "C25804",
+          "pads": {
+            "1": "ROW10",
+            "2": "+3V3"
+          }
+        },
+        "R24": {
+          "role": "tirage de ROW11 vers +3V3 (seul conditionnement de ROW11)",
+          "value": "10k",
+          "part": "0603WAF1002T5E",
+          "lcsc": "C25804",
+          "pads": {
+            "1": "ROW11",
+            "2": "+3V3"
+          }
+        }
+      }
+    },
+    "columns": {
+      "count": 7,
+      "nets": "COL00..COL06",
+      "driver": {
+        "ref": "U6",
+        "part": "74HC154",
+        "supply": "+3V3",
+        "enable": "E1 et E2 a GND",
+        "decoupling": "C26 100 nF",
+        "address": {
+          "A0": "GP15",
+          "A1": "GP14",
+          "A2": "GP13",
+          "A3": "GP12"
+        },
+        "outputs": "Y0..Y6 -> COL00..COL06, chacune par une diode Schottky BAT54WS (cathode cote 74HC154)",
+        "unused": "Y7..Y15 non cablees : une adresse de 7 a 15 ne selectionne aucune colonne (repos)"
+      }
+    },
+    "connector": {
+      "ref": "P2",
+      "type": "2x10",
+      "source": "releve de l'auteur sur la nappe de l'ED110 (orientation et colonnes), projet du 2026-11-25 18:50",
+      "via": "nappe 2x10 vers un petit PCB de repartition : matrice vers la cible ED110, LED1_OUT vers les LED ; brochage de P2 = celui de ce PCB",
+      "rows": {
+        "ROW0_IN": 1,
+        "ROW1_IN": 3,
+        "ROW2_IN": 5,
+        "ROW3_IN": 7,
+        "ROW4_IN": 9,
+        "ROW5_IN": 11,
+        "ROW6_IN": 13,
+        "ROW7_IN": 15,
+        "ROW8_IN": 17,
+        "ROW9_IN": 19
+      },
+      "columns": {
+        "COL00": 4,
+        "COL01": 6,
+        "COL02": 8,
+        "COL03": 10,
+        "COL04": 12,
+        "COL05": 14,
+        "COL06": 16
+      },
+      "other": {
+        "LED1_OUT": 20
+      },
+      "not_connected": [
+        2,
+        18
+      ]
+    },
+    "targets": "7x10 (ED110) seulement sur cette carte ; 7x12 et 4x16 prevues cote logiciel (autres PCB)",
+    "mapping_segments": "a etablir par calibration (row,col)->segment"
+  },
+  "power": {
+    "input": "P1 (+5V_IN, GND) -> U2 fusible 0501020.WR 20 A 32 V -> +5V_OUT, TVS D2 SMAJ5.0A ; P3 (+12V_IN, GND) -> F5 fusible 0501020.WR 20 A -> +12V_TOY, TVS D3 SMAJ15A",
+    "branches": {
+      "+5V_LOG": "F1 1206L110/16NR (logique)",
+      "+5V_LEDT": "F2 0501015.WR1 (LED cible, rubans 5 V)",
+      "+5V_LEDS": "F3 2920L800SL24GRG (5 V des voyants seulement, par cavalier)",
+      "+5V_TOY": "F4 2920L800SL24GRG (Toys 5 V)",
+      "+12V_TOY": "F5 0501020.WR depuis +12V_IN (P3), TVS D3 SMAJ15A"
+    }
+  }
+}

@@ -1,0 +1,27 @@
+# Journal d'exemple du mode rejeu du DMD (spécification § 9.9, 47e et 50e compléments).
+# Écrit à la main. Une ligne par message :
+#   <délai en secondes depuis le message précédent> <sujet> <contenu>
+# Espacement (50e complément) : au moins 17 s après un texte défilant, pour le voir en entier ;
+# fin par une pause de 200 s en Attract Mode, pour voir l'heure (toutes les 2 min, après la
+# fin du GIF en cours, si l'heure du Pi est synchronisée).
+# Sur le Pi :
+#   python3 pi/dmd/dmd_service.py --replay pi/dmd/replay_example.txt --loop
+# puis, depuis le Mac : ssh -4 -L 8082:127.0.0.1:8082 pi@raspydarts.local
+# et http://127.0.0.1:8082/
+1 raspydarts/dmd msg|Bienvenue
+3 raspydarts/dmd msgmove|Partie de 501 : bonne chance|left
+18 raspydarts/dmd msgcolor|Joueur 1|255;0;0|||
+2 raspydarts/dmd score|T20 - T20 - T20||255;0;0|N
+3 raspydarts/dmd msgcolor|Joueur 2|0;255;0|0;0;64|left|2
+18 raspydarts/dmd score|S5 - D1 - X||0;255;0|O
+# Coup spécial (MAXIMUM_TON_80), puis un texte reçu pendant son GIF : mis en attente,
+# affiché à la fin du GIF à la place du texte du score (49e complément)
+4 raspydarts/dmd score|T20 - T20 - T20||0;255;0|O
+0.5 raspydarts/dmd msg|Retirez les fléchettes
+8 raspydarts/dmd zap501|Joueur 1
+1 raspy2dmd pico|test_rgb
+4 raspy2dmd msg|Bonjour
+3 raspy2dmd demo|gif
+# Message ignoré : n'interrompt pas l'Attract Mode et ne relance pas attract_delay_s
+# (vérifié dans dmd_core.DmdCore.message) ; il ne sert qu'à tenir la pause avant --loop
+200 raspydarts/dmd fond1|

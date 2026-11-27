@@ -1,0 +1,343 @@
+From da427e32218512bfe3bc7962bcdcf3a05adca746 Mon Sep 17 00:00:00 2001
+From: Gohy Yves <6154641+diogeneyves@users.noreply.github.com>
+Date: Thu, 19 Nov 2026 21:00:36 +0100
+Subject: [PATCH] cscreen: adapt the game screens to Pico board mode
+MIME-Version: 1.0
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: 8bit
+
+- Calibration requested while no segment is known: pico_mode() (read like
+  ci2c.pico_mode); calibration_needed no longer stops on empty rpi.inputs and
+  rpi.outputs.
+- Coin acceptor hidden: "Paramétrage" without the "Monnayeur" button (nor its
+  shortcut); coins_menu refused with a message.
+- "MCP" texts adapted: button LEDs subtitle "… branchées sur la carte Pico";
+  banned button "Bouton … (carte Pico) banni." (banned_text).
+- Buttons menu: BTN1 to BTN15 for PIN_* (and MISS for PIN_MISSDART), V1 to V12
+  for LIGHT_*, T1 to T8 for TOY*; "Carte Pico absente" if the Pico is not
+  there; the list of choices no longer grows on each tab change; on a swap,
+  MISS does not move to another button.
+- Wizard: "Carte Pico" choice always offered (warning without blocking if
+  /dev/cible is missing); set_pico_card_config preset, no pins, no extension
+  board, no calibration (requested at the next start). LEDs: fixed channels,
+  target 0 and strip 1; target: brightness and colour order; strip: count
+  (0 to 300, 0 = no strip), brightness, order. Target ring (channel 0,
+  [LEDTarget]): list "Anneau 204 LED (sans pneu)" (default), "244 LED, pneu
+  avant les quarts", "244 LED, pneu après", "Aucune" (set_dartcab_leds_config).
+  Configuration written, then restart.
+- calibrate_target: CAL 0 sent at the start (a diagnostic may have left CAL 1,
+  which hwd would send back to the Pico); never CAL 1 (specification § 7.2).
+
+Normal mode unchanged.
+
+Co-Authored-By: Claude Opus 5.5 <noreply@anthropic.com>
+---
+ include/cscreen.py | 193 ++++++++++++++++++++++++++++++++++++++++++---
+ 1 file changed, 183 insertions(+), 10 deletions(-)
+
+diff --git a/include/cscreen.py b/include/cscreen.py
+index 2164b0a..80a1186 100644
+--- a/include/cscreen.py
++++ b/include/cscreen.py
+@@ -1320,12 +1320,31 @@ class Screen(pygame.Surface):
+             return None
+         return answer == 'yes'
+ 
++    def pico_mode(self):
++        '''
++        Mode carte Pico ([SectionAdvanced] hardware = pico, include/ci2c.py) : cible, boutons,
++        Toys et voyants sur la carte Pico, aucune broche GPIO du Raspberry
++        '''
++        from include import ci2c    # pylint: disable=import-outside-toplevel
++        return ci2c.pico_mode(self.config)
++
++    def pico_text(self, key, default):
++        '''
++        Texte du mode carte Pico (RaspyDarts-Pico, patch 0004) : la traduction de key si les
++        fichiers de langue la connaissent (clés du patch 0009), sinon default (en français).
++        Un texte à trous ({button}, {device}) : .replace après la traduction, comme l'original
++        '''
++        text = self.lang.translate(key)
++        return default if text == key else text
++
+     def calibration_needed(self):
+         '''
+         The target is wired on the GPIO but none of its segments is known : configuration
+-        made without it (page of the web site, target of no known model)
++        made without it (page of the web site, target of no known model). Mode carte Pico :
++        la cible est sur la carte (rpi.inputs et rpi.outputs vides), étalonnée tant qu'aucun
++        segment n'est connu
+         '''
+-        if not (self.rpi.inputs and self.rpi.outputs):
++        if not (self.rpi.inputs and self.rpi.outputs) and not self.pico_mode():
+             return False
+         keys = self.config.config.get('SectionKeys', {})
+         return not any(keys.get(segment) for segment in list(self.config.keys)[:62])
+@@ -1354,6 +1373,15 @@ class Screen(pygame.Surface):
+         '''
+         new_keys = {}
+         segments = list(self.config.keys)[:62]
++        if self.pico_mode():
++            # Carte Pico : étalonnage en mode normal (CAL 0, contacts filtrés), même si un
++            # diagnostic a laissé CAL 1 (hwd le renverrait au Pico) ; jamais CAL 1 ici, les
++            # rebonds d'un segment seraient pris pour le suivant (spécification § 7.2)
++            link = getattr(self.rpi, 'pico_link', None)
++            if link is not None:
++                link.send('CAL 0')
++            else:
++                self.logs.warning("Pico card mode without link to hwd : CAL 0 not sent")
+         lit = True
+         j = 0
+         while j < 62:
+@@ -1401,10 +1429,12 @@ class Screen(pygame.Surface):
+         self.menu_header("config-interface")
+         self.update_screen()
+         cards_dd = [['Ji', 'Cartes de Jimmy'], ['Jo', 'Carte de Joffrey'], ['Ch', 'La Chti Raspycard'], ['Jt', 'Carte de Julien V1'],
+-                    ['Jt2', 'Carte de Julien V2'],['Mm', 'MM-Workshop DartCab'], ['MMWVdarts', 'MM-Workshop VDarts'], ['Re', 'DartBoard'], ['Au', 'card-other']]
++                    ['Jt2', 'Carte de Julien V2'],['Mm', 'MM-Workshop DartCab'], ['MMWVdarts', 'MM-Workshop VDarts'], ['Re', 'DartBoard'], ['Pico', self.pico_text('card-pico', 'Carte Pico')], ['Au', 'card-other']]
+         card = self.dropdown(6 * self.res_x_16, 3 * self.res_y_16, cards_dd)
+         if card == 'escape':
+             return False
++        if card == 'Pico':
++            return self.wizard_pico_card()
+ 
+         if card in ('Ji', 'Jo'):
+             # Menu extendarts pour choix des matrices
+@@ -1727,6 +1757,105 @@ class Screen(pygame.Surface):
+         self.message([f"{self.lang.translate('config-restart')}"], 2500, None, 'middle', 'big')
+         return True
+ 
++    # Lien udev vers le port USB de la carte Pico (spécification § 2)
++    PICO_DEVICE = '/dev/cible'
++    # Tables de l'anneau de la cible (canal 0), par la position du pneu (set_dartcab_leds_config) :
++    # sans pneu, DartcabLedsNoTire (204 LED, kit RaspyLed) ; avant les quarts, JiLedsConfig ; après,
++    # DartcabLedsTireAfter (244 LED)
++    # [valeur enregistrée, clé de traduction, texte français par défaut]
++    PICO_RINGS = [['none', 'pico-ring-204', 'Anneau 204 LED (sans pneu)'],
++                  ['before', 'pico-ring-244-before', '244 LED, pneu avant les quarts'],
++                  ['after', 'pico-ring-244-after', '244 LED, pneu après'],
++                  ['no', 'pico-ring-none', 'Aucune']]
++
++    def wizard_pico_card(self):
++        '''
++        Assistant, carte Pico : la cible, les boutons, les Toys et les voyants sont sur la carte
++        (préréglage set_pico_card_config) ; ni broche à demander, ni étalonnage ici (demandé au
++        démarrage suivant, calibration_needed), ni carte d'extension (setup_io_extender).
++        LED : canaux fixes, cible 0 et ruban 1 ; table de l'anneau de la cible (canal 0, [LEDTarget])
++        choisie dans une liste (set_dartcab_leds_config : 204 LED sans pneu par défaut, 244 LED
++        avec pneu avant ou après les quarts), ou aucune. La carte absente (pas de /dev/cible) :
++        avertissement, sans blocage
++        '''
++        if not os.path.exists(self.PICO_DEVICE):
++            self.message([self.pico_text('pico-not-detected',
++                                         'Carte Pico non détectée ({device} absent) : configuration écrite quand même')
++                          .replace('{device}', self.PICO_DEVICE)],
++                         3000, None, 'middle', 'big')
++        self.config.set_pico_card_config()
++
++        self.display_background()    # display basic screen
++        self.menu_header("config-leds_choice", self.pico_text('pico-ring-question', 'Anneau de LED de la cible (canal 0)'))
++        self.update_screen()
++        rings = [[value, self.pico_text(key, default)] for value, key, default in self.PICO_RINGS]
++        ring = self.dropdown(6 * self.res_x_16, 3 * self.res_y_16, rings)
++        if ring == 'escape':
++            ring = 'none'
++
++        new_leds = self.wizard_pico_leds()
++        if new_leds is None:
++            return False
++        self.rpi.set_leds_conf(new_leds)
++        if ring in ('none', 'before', 'after'):
++            self.config.set_dartcab_leds_config(ring)
++
++        # Write config file
++        self.config.write_file()
++
++        self.message([f"{self.lang.translate('config-restart')}"], 2500, None, 'middle', 'big')
++        return True
++
++    def wizard_pico_leds(self):
++        '''
++        LED de la carte Pico : canal 0 (cible) et canal 1 (ruban), fixes. Cible : luminosité et
++        ordre des couleurs (son nombre de LED vient de [LEDTarget]) ; ruban : nombre (0 : pas de
++        ruban, ses autres étapes sautées), luminosité, ordre. Échap : l'étape d'avant ; sur la
++        première, None (assistant quitté)
++        '''
++        new_leds = {'PIN_TARGETLED': '0', 'PIN_STRIPLED': '1'}
++        keys = ['BRI_TARGETLED', 'TYP_TARGETLED', 'NBR_STRIPLED', 'BRI_STRIPLED', 'TYP_STRIPLED']
++        history = []
++        j = 0
++        while j < len(keys):
++            key = keys[j]
++            esc_text = self.lang.translate('conf-esc1' if not history else 'conf-esc2')
++            self.display_background()    # display basic screen
++            self.menu_header(self.lang.translate('conf-leds'))
++            self.message([f"{self.lang.translate('conf-fillin')} {self.lang.translate(key)}"], 0, None, 'fullbottom', 'big', refresh=False)
++            self.update_screen()
++
++            if key.startswith('TYP_'):
++                tmp = self.dropdown(self.res['x'] * 6 / 16, 3 * self.res_y_16, [['rgb', 'RGB'], ['grb', 'GRB']])
++            elif key == 'NBR_STRIPLED':
++                tmp = self.input_value_item('number', '', 0, 300, align='Center')
++            else:
++                tmp = self.input_value_item('number', '', 1, 100, align='Center')
++
++            if tmp == 'escape':
++                if not history:
++                    return None
++                j = history.pop()
++                new_leds.pop(keys[j], None)
++                continue
++            if key == 'NBR_STRIPLED':
++                if tmp in ('', 'space', '0'):
++                    # No strip
++                    new_leds.update({'NBR_STRIPLED': 0, 'BRI_STRIPLED': 0, 'TYP_STRIPLED': 'grb'})
++                    history.append(j)
++                    j = len(keys)
++                    continue
++                if not str(tmp).isdigit() or int(tmp) > 300:
++                    # 300 LED at most on a channel : asked again
++                    continue
++            elif tmp in ('', 'space'):
++                # A value is needed : asked again
++                continue
++            new_leds[key] = tmp
++            history.append(j)
++            j += 1
++        return new_leds
++
+     def setup_io_extender(self):
+ 
+         try:
+@@ -6185,8 +6314,10 @@ class Screen(pygame.Surface):
+         Buttons setup menu
+         '''
+ 
++        pico = self.pico_mode()
+         if self.rpi.gpio.mcp1 is None:
+-            self.message([self.lang.translate('nogpio')], 3000, None, 'middle', 'big', bg_color='menu-ko')
++            text = self.pico_text('pico-absent', 'Carte Pico absente') if pico else self.lang.translate('nogpio')
++            self.message([text], 3000, None, 'middle', 'big', bg_color='menu-ko')
+             return 'escape'
+ 
+         selected = 1
+@@ -6300,14 +6431,17 @@ class Screen(pygame.Surface):
+             # Change tab
+             if selected == -1:
+                 selected_buttons = ext1_buttons
+-                selected_buttons_list += ext1_buttons_list
++                if not pico:
++                    # Mode carte Pico : la liste ne grossit pas à chaque changement d'onglet
++                    selected_buttons_list += ext1_buttons_list
+                 tab = -1
+                 refresh = True
+                 continue
+             
+             if selected == 0:
+                 selected_buttons = ext2_buttons
+-                selected_buttons_list += ext2_buttons_list
++                if not pico:
++                    selected_buttons_list += ext2_buttons_list
+                 tab = 0
+                 refresh = True
+                 continue
+@@ -6316,14 +6450,32 @@ class Screen(pygame.Surface):
+                 key = cursor[selected-1]
+ 
+                 old = buttons[selected_buttons[selected-1]]
+-                t = self.dropdown(self.res['x'] / 8*3, self.res['y'] / 4, selected_buttons_list, navigate = selected_buttons[selected-1])
++                choices = self.pico_button_choices(selected_buttons[selected-1]) if pico else selected_buttons_list
++                t = self.dropdown(self.res['x'] / 8*3, self.res['y'] / 4, choices, navigate = selected_buttons[selected-1])
+                 if t != 'escape':
+                     for button in buttons:
+                         if buttons[button] == t and t != '':
++                            if pico and (old, old) not in self.pico_button_choices(button):
++                                # Mode carte Pico : MISS ne va qu'à PIN_MISSDART
++                                old = ''
+                             buttons[button] = old
+                             break
+                     buttons[selected_buttons[selected-1]] = t
+ 
++    @staticmethod
++    def pico_button_choices(button):
++        '''
++        Mode carte Pico : valeurs proposées pour un élément du menu Boutons (include/cpico.py) :
++        BTN1 à BTN15 pour PIN_* (et MISS pour PIN_MISSDART), V1 à V12 pour LIGHT_*, T1 à T8 pour TOY*
++        '''
++        if button.startswith('LIGHT_'):
++            values = [f'V{number}' for number in range(1, 13)]
++        elif button.startswith('TOY'):
++            values = [f'T{number}' for number in range(1, 9)]
++        else:
++            values = [f'BTN{number}' for number in range(1, 16)] + (['MISS'] if button == 'PIN_MISSDART' else [])
++        return [('', 'notattributed')] + [(value, value) for value in values]
++
+     '''
+     Test toys menu
+     '''
+@@ -6400,7 +6552,12 @@ class Screen(pygame.Surface):
+         '''
+         menus = self.menus()
+         buttons = [button for button in menus.buttons('settings') if button.get('visible', True) is not False]
+-        return menus.result(self.run_menu('settings', buttons, menus.buttons('settings')))
++        everything = menus.buttons('settings')
++        if self.pico_mode():
++            # Mode carte Pico : pas de monnayeur (aucune entrée sur la carte), ni bouton ni raccourci
++            buttons = [button for button in buttons if button.get('action') != 'coins']
++            everything = [button for button in everything if button.get('action') != 'coins']
++        return menus.result(self.run_menu('settings', buttons, everything))
+ 
+     def miscellaneous(self, update):
+         '''
+@@ -9292,7 +9449,7 @@ class Screen(pygame.Surface):
+                 self.message([f'Button {self.rpi.banned_gpio} (GPIO) is banned.'], color=(189, 108, 109), size='big')
+                 shown = True
+             if self.rpi.gpio is not None and self.rpi.gpio.banned_button is not None:
+-                self.message([f'Button {self.rpi.gpio.banned_button} (MCP) is banned.'], color=(189, 108, 109), size='big')
++                self.message([self.banned_text(self.rpi.gpio.banned_button)], color=(189, 108, 109), size='big')
+                 shown = True
+             return shown
+ 
+@@ -9724,6 +9881,15 @@ class Screen(pygame.Surface):
+         return [(name, f'MCP {name}') for name in (getattr(coins.extender, 'all_io', None) or [])
+                 if name not in taken or name == current]
+ 
++    def banned_text(self, button):
++        '''
++        A button of the extension card held too long : banned until it is released. Mode carte
++        Pico : le bouton est sur la carte Pico, pas sur un MCP
++        '''
++        if self.pico_mode():
++            return self.pico_text('pico-button-banned', 'Bouton {button} (carte Pico) banni.').replace('{button}', str(button))
++        return f'Button {button} (MCP) is banned.'
++
+     def button_leds_menu(self):
+         '''
+         Paramétrage > LED des boutons : the LED of the buttons plugged on the MCP (those given a
+@@ -9737,11 +9903,13 @@ class Screen(pygame.Surface):
+             self.message([translate('button-leds-none')], 3500, self.colorset['menu-ko'], 'middle', 'big')
+             return
+         settings = cbuttonleds.load(self.logs)
++        # Mode carte Pico : les LED des boutons sont les voyants de la carte Pico
++        subtitle = self.pico_text('pico-button-leds-sub', 'Les LED des boutons branchées sur la carte Pico') if self.pico_mode() else translate('button-leds-sub')
+         selected = 1
+         while True:
+             nb_elements = len(found)
+             self.display_background()
+-            self.menu_header(translate('button-leds'), translate('button-leds-sub'))
++            self.menu_header(translate('button-leds'), subtitle)
+             click_zones = {}
+             for index, led in enumerate(found, 1):
+                 click_zones[f'F{index}'] = self.menu_item((index, nb_elements, selected), (f'F{index}', led, BTN_DROPDOWN,
+@@ -9908,6 +10076,11 @@ class Screen(pygame.Surface):
+         its input, the credits or the minutes of a coin, the players of a game, the prices by
+         type and by game, credits given by hand, the coins counted (live : the test)
+         '''
++        if self.pico_mode():
++            # Mode carte Pico : pas de monnayeur (bouton remis par l'éditeur des écrans)
++            self.logs.info("Coin acceptor : none with the Pico card")
++            self.message([self.pico_text('pico-no-coins', 'Pas de monnayeur avec la carte Pico')], 2500, self.colorset['menu-ko'], 'middle', 'big')
++            return
+         coins = self.rpi.coins
+         if not self.coins_password(coins):
+             return

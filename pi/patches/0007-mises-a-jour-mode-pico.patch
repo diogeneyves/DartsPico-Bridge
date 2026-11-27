@@ -1,0 +1,121 @@
+From 56ddf18f66e5c09fa2a2d3038a1e668573e3da8f Mon Sep 17 00:00:00 2001
+From: Gohy Yves <6154641+diogeneyves@users.noreply.github.com>
+Date: Sun, 22 Nov 2026 08:03:20 +0100
+Subject: [PATCH] Updates: disable them in Pico board mode
+MIME-Version: 1.0
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: 8bit
+
+In Pico board mode ([SectionAdvanced] hardware = pico):
+- cscreen.py: the "Vérifier les mises à jour" button in Settings shows
+  "Mise à jour désactivée en mode carte Pico" (key pico-update-disabled, French
+  default text, pico_text) and goes back to the menu, without asking GitHub;
+- raspydarts.py: at start-up, no pending install (backup/update_pending.json),
+  no check (check_for_updates), one log line;
+- cdmdmenu.py: Raspy2DMD install, start, update and uninstall buttons hidden;
+  selection kept when no command is left.
+In normal mode, behaviour identical to the original.
+---
+ include/cdmdmenu.py | 21 ++++++++++++++++++++-
+ include/cscreen.py  |  9 +++++++++
+ raspydarts.py       | 14 ++++++++++++--
+ 3 files changed, 41 insertions(+), 3 deletions(-)
+
+diff --git a/include/cdmdmenu.py b/include/cdmdmenu.py
+index 3f372b5..a06a720 100644
+--- a/include/cdmdmenu.py
++++ b/include/cdmdmenu.py
+@@ -24,6 +24,22 @@ def translate(screen, key):
+     return screen.lang.translate(key)
+ 
+ 
++# Mode carte Pico (RaspyDarts-Pico, patch 0007) : l'Interstate 75 W remplace Raspy2DMD ; ses
++# boutons d'installation (script téléchargé et lancé en root), de démarrage, de mise à jour et
++# de suppression sont masqués. Le reste du menu ne change pas
++PICO_HIDDEN_COMMANDS = ('install', 'start', 'update', 'uninstall')
++
++
++def pico_commands(screen, commands):
++    '''
++    Les commandes du menu : sans celles de PICO_HIDDEN_COMMANDS en mode carte Pico
++    '''
++    pico_mode = getattr(screen, 'pico_mode', None)
++    if pico_mode is None or not pico_mode():
++        return commands
++    return [command for command in commands if command[0] not in PICO_HIDDEN_COMMANDS]
++
++
+ def style_label(screen, value):
+     return translate(screen, f'dmd-style-{value}')
+ 
+@@ -149,6 +165,7 @@ def raspy2dmd_menu(screen, dispatcher):
+                 commands.append(('uninstall', 'raspy2dmd-uninstall'))
+         else:
+             commands.append(('install', 'raspy2dmd-install-here'))
++        commands = pico_commands(screen, commands)
+         # In the order of reading : the settings, the commands, Retour
+         entries = [('setting',) + item for item in settings] + [('command',) + item + (None,) for item in commands] + [('back', 'back', 'back', None)]
+         selected = max(0, min(selected, len(entries) - 1))
+@@ -234,7 +251,9 @@ def raspy2dmd_menu(screen, dispatcher):
+         elif key in ('left', 'right', 'S11', 'S6'):
+             if kind in ('setting', 'command'):
+                 other = [index for index, entry in enumerate(entries) if entry[0] == ('command' if kind == 'setting' else 'setting')]
+-                selected = other[min(same.index(selected), len(other) - 1)]
++                # Aucune commande (mode carte Pico, Raspy2DMD arrêté) : la sélection reste
++                if other:
++                    selected = other[min(same.index(selected), len(other) - 1)]
+         elif key in ENTER_KEYS + ['space']:
+             kind, ident = entries[selected][0], entries[selected][1]
+             if kind == 'back':
+diff --git a/include/cscreen.py b/include/cscreen.py
+index 80a1186..19ccb72 100644
+--- a/include/cscreen.py
++++ b/include/cscreen.py
+@@ -6572,6 +6572,15 @@ class Screen(pygame.Surface):
+             if button.get('action') != 'update':
+                 return menus.result(button)
+ 
++            if self.pico_mode():
++                # Mode carte Pico (RaspyDarts-Pico, patch 0007) : une mise à jour écraserait les
++                # fichiers modifiés par les patchs ; aucune demande à GitHub
++                self.logs.info("Update : not checked in Pico card mode (patch 0007)")
++                self.update_screen(self.message([self.pico_text('pico-update-disabled',
++                                                                 'Mise à jour désactivée en mode carte Pico')],
++                                                2500, self.colorset['menu-ko'], 'middle', 'big'))
++                continue
++
+             version = update[0].get_version(self.logs)
+             try:
+                 if self.update_mode() == 'ask':
+diff --git a/raspydarts.py b/raspydarts.py
+index d700097..de0a2b6 100644
+--- a/raspydarts.py
++++ b/raspydarts.py
+@@ -415,7 +415,17 @@ def update_progress(key, unit=''):
+ 
+ # An update downloaded in the background (Mise à jour prête : Demander) : installed now,
+ # before the game loads anything, then the game started again
+-pending_update = cupdate.load_pending(logs, version)
++# Mode carte Pico (RaspyDarts-Pico, patch 0007) : ni installation en attente, ni vérification
++# (une mise à jour écraserait les fichiers modifiés par les patchs)
++from include import ci2c as ci2c_update
++pico_no_update = ci2c_update.pico_mode(Config)
++if pico_no_update:
++    logs.info("Update : pending installation and check skipped in Pico card mode (patch 0007)")
++    if os.path.isfile(cupdate.PENDING_FILE):
++        logs.warning(f"Pending update ignored in Pico card mode : {cupdate.PENDING_FILE}")
++    pending_update = None
++else:
++    pending_update = cupdate.load_pending(logs, version)
+ if pending_update is not None:
+     display.message(['updating'], 0, None, 'middle')
+     new_version = cupdate.apply_update(logs, pending_update, update_progress('updating'))
+@@ -428,7 +438,7 @@ if pending_update is not None:
+         version = new_version
+         game_type = 'restart'
+         logs.info("Update waiting : done")
+-elif Config.get_value('SectionGlobals', 'check_for_updates', False):
++elif not pico_no_update and Config.get_value('SectionGlobals', 'check_for_updates', False):
+     try:
+         display.message(['update-check'], 0, None, 'middle')
+         update = cupdate.get_last(logs, version)

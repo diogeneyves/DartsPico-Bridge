@@ -1,0 +1,81 @@
+From 7a5170e0edd59c6aed2aff7541ff9025238ea59c Mon Sep 17 00:00:00 2001
+From: Gohy Yves <6154641+diogeneyves@users.noreply.github.com>
+Date: Wed, 4 Nov 2026 12:06:28 +0100
+Subject: [PATCH] cconfig: add [SectionAdvanced] hardware key and Pico board
+ preset
+
+- hardware (normal by default) known to cconfig, loaded, and written back by
+  write_file only when it is not normal: the file written in normal mode stays
+  identical byte for byte
+- PicoCardConfig and set_pico_card_config: no GPIO pin, segments to calibrate,
+  [Raspberry] = include/cpico.py DEFAULTS (imported only there)
+Only lines are added.
+---
+ include/cconfig.py | 33 +++++++++++++++++++++++++++++++++
+ 1 file changed, 33 insertions(+)
+
+diff --git a/include/cconfig.py b/include/cconfig.py
+index 471f480..a974a54 100644
+--- a/include/cconfig.py
++++ b/include/cconfig.py
+@@ -157,6 +157,8 @@ DefaultConfig['SectionAdvanced'] = {
+     'victory-celebration-delay': 5000,
+     'launch-game-celebration': False,
+     'game-options-list':'',
++    # Carte Pico (RaspyDarts-Pico) : pico ; sinon normal (include/craspberry.py)
++    'hardware': 'normal',
+     'richard-mode': False
+     }
+ #
+@@ -1021,6 +1023,15 @@ MMWorksVDartsCardConfig = {
+     'EXTENDED': EXTENDED_CONFIG
+     }
+ 
++# Carte Pico (RaspyDarts-Pico) : aucune broche GPIO du Pi, segments à étalonner (codes
++# R<ligne>C<colonne>). [Raspberry] vient de include/cpico.py, lu par set_pico_card_config
++PicoCardConfig = {
++    'CARD_NAME': 'Carte Pico (RaspyDarts-Pico)',
++    'INPUT': {f'PIN_{pin}': '' for pin in range(1, 17)},
++    'OUTPUT': {f'PIN_{pin}': '' for pin in range(1, 11)},
++    'KEYS': {key: '' for key in DefaultConfig['SectionKeys']},
++    }
++
+ 
+ #
+ # Start of Config Class
+@@ -1492,6 +1503,10 @@ class Config:
+         self.conf += f"launch-game-celebration:{Advanced['launch-game-celebration']}\n"
+         self.conf += "### List of games for which options are saved\n"
+         self.conf += f"game-options-list:{Advanced['game-options-list']}\n"
++        if str(Advanced.get('hardware', 'normal')).strip().lower() != 'normal':
++            # Carte Pico (RaspyDarts-Pico) : écrit seulement quand ce n'est pas le mode normal
++            self.conf += "### Hardware : pico (RaspyDarts-Pico card) or normal\n"
++            self.conf += f"hardware:{Advanced['hardware']}\n"
+         self.conf += "### For Richard's case\n"
+         self.conf += f"richard-mode:{Advanced['richard-mode']}\n\n"
+ 
+@@ -1706,6 +1721,24 @@ class Config:
+         Set MMWorkshop's leds config
+         """
+         self.set_config('LEDTarget', MMWorkshopVdartsLedsConfig)
++
++    def set_pico_card_config(self):
++        """
++        Carte Pico (RaspyDarts-Pico) : la cible, les boutons, les Toys et les voyants sont sur la
++        carte Pico, reliée en USB ; aucune broche GPIO du Pi. Les segments sont à étalonner
++        (codes R<ligne>C<colonne>). La correspondance des boutons vient de include/cpico.py
++        """
++        from include import cpico
++        self.set_config('Raspberry_BoardPinsIns', PicoCardConfig['INPUT'])
++        self.set_config('Raspberry_BoardPinsOuts', PicoCardConfig['OUTPUT'])
++        self.set_config('SectionKeys', PicoCardConfig['KEYS'])
++        self.set_config('Raspberry', cpico.DEFAULTS)
++        self.config['SectionAdvanced']['hardware'] = 'pico'
++        # Sortie du son : HDMI, seulement si elle vaut auto ou est absente (vide compris, comme
++        # raspydarts.py) ; « auto » ne trouve aucune sortie sous Raspbian 13 (spécification § 9.4)
++        globals_section = self.config['SectionGlobals']
++        if str(globals_section.get('sound_output') or 'auto').strip().lower() == 'auto':
++            globals_section['sound_output'] = 'hdmi'
+         
+ 
+     def read_colorset(self, colorset_file):

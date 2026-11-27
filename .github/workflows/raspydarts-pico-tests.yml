@@ -1,0 +1,422 @@
+# Intégration continue de RaspyDarts-Pico : vérifie les patchs et lance les tests unitaires.
+name: RaspyDarts-Pico tests
+
+on:
+  push:
+  pull_request:
+
+# Jeton limité à la lecture du dépôt pour tous les jobs (complément 67) : toutes les autres
+# portées du GITHUB_TOKEN passent à none. Cache et artefact vérifiés par l'exécution.
+permissions:
+  contents: read
+
+jobs:
+  tests:
+    runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        python-version: ["3.11", "3.13"]
+    defaults:
+      run:
+        working-directory: .
+    steps:
+      - uses: actions/checkout@v7
+      - uses: actions/setup-python@v7
+        with:
+          python-version: ${{ matrix.python-version }}
+      - name: Installer Pillow 11.1.0 (version du Pi, § 9.9)
+        # Roues manylinux de la 11.1.0 pour CPython 3.11 et 3.13, FreeType inclus :
+        # rendu du DMD (tests/test_dmd_render.py, tests/test_dmd_service.py).
+        run: |
+          python -m pip install --only-binary=:all: Pillow==11.1.0
+          python -c "import PIL, PIL.features as f; print('Pillow', PIL.__version__, 'FreeType', f.version('freetype2'))"
+      - name: Cloner RaspyDarts au commit figé
+        run: |
+          # Copie de référence de RaspyDarts, au commit figé de pi/patches/BASE (lecture seule) :
+          # utilisée par tools/apply_patches.sh --check et par les tests qui lisent le vrai code.
+          # Le contexte « runner » n'existe pas dans env au niveau du job : la variable est
+          # calculée ici, puis transmise aux étapes suivantes par GITHUB_ENV.
+          RASPYDARTS_ORIG="$RUNNER_TEMP/RaspyDarts-orig"
+          echo "RASPYDARTS_ORIG=$RASPYDARTS_ORIG" >> "$GITHUB_ENV"
+          git clone --quiet --filter=blob:none --no-checkout \
+            https://github.com/rmdelcelier/RaspyDarts "$RASPYDARTS_ORIG"
+          git -C "$RASPYDARTS_ORIG" checkout --quiet "$(head -n 1 pi/patches/BASE)"
+          git -C "$RASPYDARTS_ORIG" log -1 --format='%H %s'
+      - name: Vérifier les patchs de pi/patches/series (0001, 0002…) sur le commit figé
+        run: tools/apply_patches.sh --check "$RASPYDARTS_ORIG"
+      - name: Tests unitaires
+        run: python -m unittest discover -s tests -v
+
+  # Bibliothèque portable du firmware de l'Interstate 75 W (spécification § 8) :
+  # tests sur PC contre les vecteurs de firmware/i75w_display/tests/vectors/.
+  # Bloquant (34e complément) ; sanitizers d'adresse et de comportement indéfini.
+  i75w-host-tests:
+    runs-on: ubuntu-24.04
+    defaults:
+      run:
+        working-directory: firmware/i75w_display
+    steps:
+      - uses: actions/checkout@v7
+      - name: Configurer (CMake)
+        run: |
+          cmake --version
+          cmake -S tests -B "$RUNNER_TEMP/i75w-build" -DCMAKE_BUILD_TYPE=Debug \
+            -DCMAKE_CXX_FLAGS="-fsanitize=address,undefined -fno-sanitize-recover=all"
+      - name: Compiler
+        run: cmake --build "$RUNNER_TEMP/i75w-build" --parallel
+      - name: Tests (ctest)
+        run: ctest --test-dir "$RUNNER_TEMP/i75w-build" --output-on-failure
+
+  # ThreadSanitizer (spécification § 8, 53e complément) : test_display seul (essai à deux
+  # fils du triple tampon), puis le témoin tests/tsan_canary.cpp, qui doit être signalé
+  # avec le code 66 exactement. Job à part : TSan et ASan ne vont pas dans le même binaire.
+  # Pas de fichier de suppressions. Bloquant depuis le contrôle par l'auteur du job de
+  # ba549ec (vm.mmap_rnd_bits = 28, test vert, témoin signalé avec le code 66).
+  i75w-host-tsan:
+    runs-on: ubuntu-24.04
+    env:
+      TSAN_OPTIONS: "halt_on_error=1 exitcode=66"
+    defaults:
+      run:
+        working-directory: firmware/i75w_display
+    steps:
+      - uses: actions/checkout@v7
+      - name: Diagnostic (versions, vm.mmap_rnd_bits)
+        run: |
+          c++ --version | head -n 1
+          cmake --version | head -n 1
+          echo "TSAN_OPTIONS = $TSAN_OPTIONS"
+          # /proc/sys/vm/mmap_rnd_bits est souvent lisible par root seul (mode 0600) : lecture
+          # sans sudo d'abord, puis par sudo si elle est refusée (« permission denied »).
+          f=/proc/sys/vm/mmap_rnd_bits
+          ls -l "$f"
+          if bits="$(cat "$f" 2>/dev/null)"; then
+            echo "vm.mmap_rnd_bits = $bits (lu sans sudo)"
+          else
+            bits="$(sudo cat "$f")"
+            echo "vm.mmap_rnd_bits = $bits (lu par sudo, lecture refusée sans)"
+          fi
+          # Au-delà de 28, TSan peut refuser de démarrer (« unexpected memory mapping »).
+          if [ "$bits" -gt 28 ]; then
+            sudo sysctl -w vm.mmap_rnd_bits=28
+            echo "vm.mmap_rnd_bits = $(sudo cat "$f") (après abaissement)"
+          else
+            echo "vm.mmap_rnd_bits ≤ 28 : inchangé"
+          fi
+      - name: Configurer (CMake, TSan)
+        run: |
+          cmake -S tests -B "$RUNNER_TEMP/i75w-tsan" -DCMAKE_BUILD_TYPE=Debug -DI75W_TSAN=ON \
+            -DCMAKE_CXX_FLAGS="-fsanitize=thread -fno-omit-frame-pointer -g -O1"
+      - name: Compiler test_display et le témoin
+        run: cmake --build "$RUNNER_TEMP/i75w-tsan" --parallel --target test_display tsan_canary
+      - name: Test display sous TSan (ctest)
+        run: |
+          ctest --test-dir "$RUNNER_TEMP/i75w-tsan" -R '^display$' --no-tests=error \
+            --output-on-failure --verbose
+      - name: "Témoin : TSan doit signaler l'accès concurrent (code 66 exactement)"
+        run: |
+          log="$RUNNER_TEMP/tsan_canary.log"
+          set +e
+          "$RUNNER_TEMP/i75w-tsan/tsan_canary" > "$log" 2>&1
+          rc=$?
+          set -e
+          head -n 25 "$log"
+          echo "Code de sortie du témoin : $rc"
+          [ "$rc" -eq 66 ] || { echo "Témoin : code $rc au lieu de 66, TSan inactif ?"; exit 1; }
+          grep -q "WARNING: ThreadSanitizer: data race" "$log" \
+            || { echo "Témoin : aucun « data race » dans la sortie"; exit 1; }
+          echo "Témoin signalé par TSan, code 66 : bon"
+
+  # Firmware de l'Interstate 75 W (spécification § 8, 34e et 36e compléments) :
+  # .uf2 compilé avec le Pico SDK 2.1.0 et picotool 2.1.0, versions figées dont
+  # le SHA est contrôlé ; publié comme artefact avec son SHA-256. Bloquant.
+  # Cache du Pico SDK et de picotool (complément 63, qui lève le « pas de cache » du
+  # 36e complément) : clés fondées sur les SHA figés, tous les contrôles refaits après
+  # restauration. Ni RaspyDarts, ni pip, ni apt, ni ccache en cache.
+  i75w-uf2:
+    needs: i75w-host-tests
+    runs-on: ubuntu-24.04
+    env:
+      PICO_SDK_TAG: "2.1.0"
+      PICO_SDK_SHA: 95ea6acad131124694cda1c162c52cd30e0aece0
+      TINYUSB_SHA: 5217cee5de4cd555018da90f9f1bcc87fb1c1d3a
+      PICOTOOL_TAG: "2.1.0"
+      PICOTOOL_SHA: df21059f7ca6f1babc7f1f3b92122cacffc85951
+    defaults:
+      run:
+        working-directory: firmware/i75w_display
+    steps:
+      - uses: actions/checkout@v7
+      - name: Installer la chaîne ARM du système
+        # Délai de 15 min (complément 68) : apt-get bloqué 22 min à l'exécution n° 122.
+        # Dépassement : échec de l'étape et du job, sans seconde tentative d'apt-get.
+        # Complément 71 (blocage en plein téléchargement au n° 126) : connexion figée abandonnée
+        # au bout de 30 s et téléchargement retenté par apt lui-même (3 fois au plus) ; un index
+        # manquant fait échouer update (--error-on=any). Le délai de 15 min reste le filet.
+        timeout-minutes: 15
+        run: |
+          sudo apt-get update -q --error-on=any -o Acquire::Retries=3 \
+            -o Acquire::http::Timeout=30 -o Acquire::https::Timeout=30
+          sudo apt-get install -y -q --no-install-recommends -o Acquire::Retries=3 \
+            -o Acquire::http::Timeout=30 -o Acquire::https::Timeout=30 \
+            gcc-arm-none-eabi libnewlib-arm-none-eabi libstdc++-arm-none-eabi-newlib
+          arm-none-eabi-gcc --version | head -n 1
+          cmake --version | head -n 1
+          # Paquets apt sans version figée : versions installées notées dans le résumé (complément 63).
+          {
+            echo "### Chaîne ARM (apt)"
+            echo
+            dpkg-query -W -f='- `${Package}` : `${Version}`\n' \
+              gcc-arm-none-eabi libnewlib-arm-none-eabi libstdc++-arm-none-eabi-newlib
+            echo
+          } >> "$GITHUB_STEP_SUMMARY"
+      - name: Identifier l'image du runner (clé du cache de picotool)
+        id: image
+        run: |
+          if [ -z "$ImageOS" ] || [ -z "$ImageVersion" ]; then
+            echo "ImageOS ou ImageVersion absent : clé du cache de picotool impossible"
+            exit 1
+          fi
+          echo "os=$ImageOS" >> "$GITHUB_OUTPUT"
+          echo "version=$ImageVersion" >> "$GITHUB_OUTPUT"
+          echo "Image du runner : $ImageOS $ImageVersion"
+      - name: Cache du Pico SDK et de TinyUSB
+        id: cache-sdk
+        uses: actions/cache@v6
+        with:
+          path: ${{ runner.temp }}/pico-sdk
+          key: pico-sdk-${{ env.PICO_SDK_SHA }}-tinyusb-${{ env.TINYUSB_SHA }}-${{ runner.os }}
+      - name: Cloner le Pico SDK et TinyUSB (SHA contrôlés, aussi après restauration)
+        env:
+          CACHE_HIT: ${{ steps.cache-sdk.outputs.cache-hit }}
+        run: |
+          SDK="$RUNNER_TEMP/pico-sdk"
+          if [ "$CACHE_HIT" = "true" ]; then
+            echo "Pico SDK et TinyUSB restaurés du cache"
+            echo "- Cache du Pico SDK et de TinyUSB : trouvé (hit)" >> "$GITHUB_STEP_SUMMARY"
+          else
+            echo "- Cache du Pico SDK et de TinyUSB : absent (miss), clonage" >> "$GITHUB_STEP_SUMMARY"
+            git clone --quiet --depth 1 --branch "$PICO_SDK_TAG" \
+              https://github.com/raspberrypi/pico-sdk.git "$SDK"
+          fi
+          got="$(git -C "$SDK" rev-parse HEAD)"
+          [ "$got" = "$PICO_SDK_SHA" ] || { echo "Pico SDK : commit $got au lieu de $PICO_SDK_SHA"; exit 1; }
+          # Seul sous-module utilisé : lib/tinyusb (ni cyw43-driver, ni lwip, ni btstack, ni mbedtls).
+          got="$(git -C "$SDK" ls-tree HEAD lib/tinyusb | awk '{print $3}')"
+          [ "$got" = "$TINYUSB_SHA" ] || { echo "TinyUSB attendu par le SDK : $got au lieu de $TINYUSB_SHA"; exit 1; }
+          if [ "$CACHE_HIT" != "true" ]; then
+            git -C "$SDK" submodule update --init --depth 1 lib/tinyusb
+          fi
+          got="$(git -C "$SDK/lib/tinyusb" rev-parse HEAD)"
+          [ "$got" = "$TINYUSB_SHA" ] || { echo "TinyUSB : commit $got au lieu de $TINYUSB_SHA"; exit 1; }
+          echo "PICO_SDK_PATH=$SDK" >> "$GITHUB_ENV"
+      - name: Cache de picotool (installé, avec ses sources)
+        id: cache-picotool
+        uses: actions/cache@v6
+        with:
+          path: |
+            ${{ runner.temp }}/picotool
+            ${{ runner.temp }}/picotool-src
+          key: picotool-${{ env.PICOTOOL_SHA }}-sdk-${{ env.PICO_SDK_SHA }}-${{ steps.image.outputs.os }}-${{ steps.image.outputs.version }}
+      - name: Compiler picotool (SHA contrôlé, sans libusb ; version 2.1.0 contrôlée)
+        env:
+          CACHE_HIT: ${{ steps.cache-picotool.outputs.cache-hit }}
+        run: |
+          # Sans lui, le SDK irait chercher picotool sur la branche develop, non figée (34e complément).
+          SRC="$RUNNER_TEMP/picotool-src"
+          PREFIX="$RUNNER_TEMP/picotool"
+          if [ "$CACHE_HIT" = "true" ]; then
+            echo "picotool restauré du cache"
+            echo "- Cache de picotool : trouvé (hit)" >> "$GITHUB_STEP_SUMMARY"
+          else
+            echo "- Cache de picotool : absent (miss), compilation" >> "$GITHUB_STEP_SUMMARY"
+            git clone --quiet --depth 1 --branch "$PICOTOOL_TAG" \
+              https://github.com/raspberrypi/picotool.git "$SRC"
+          fi
+          got="$(git -C "$SRC" rev-parse HEAD)"
+          [ "$got" = "$PICOTOOL_SHA" ] || { echo "picotool : commit $got au lieu de $PICOTOOL_SHA"; exit 1; }
+          if [ "$CACHE_HIT" != "true" ]; then
+            cmake -S "$SRC" -B "$RUNNER_TEMP/picotool-build" -DCMAKE_BUILD_TYPE=Release \
+              -DPICOTOOL_NO_LIBUSB=1 -DPICOTOOL_FLAT_INSTALL=1 -DCMAKE_INSTALL_PREFIX="$PREFIX"
+            cmake --build "$RUNNER_TEMP/picotool-build" --parallel
+            cmake --install "$RUNNER_TEMP/picotool-build"
+          fi
+          # Version annoncée contrôlée, après compilation comme après restauration (complément 63).
+          ver="$("$PREFIX/picotool/picotool" version)"
+          echo "$ver"
+          echo "$ver" | grep -qE '(^|[^0-9.])2\.1\.0([^0-9.]|$)' \
+            || { echo "picotool : version « $ver » au lieu de 2.1.0"; exit 1; }
+          echo "PICOTOOL_PREFIX=$PREFIX" >> "$GITHUB_ENV"
+      - name: Configurer le firmware (CMake)
+        run: |
+          cmake -S . -B "$RUNNER_TEMP/i75w-fw" -DCMAKE_BUILD_TYPE=Release \
+            -DPICO_SDK_PATH="$PICO_SDK_PATH" -Dpicotool_DIR="$PICOTOOL_PREFIX/picotool"
+          # Aucun picotool téléchargé par le SDK : seul celui compilé ci-dessus.
+          [ ! -e "$RUNNER_TEMP/i75w-fw/_deps/picotool-src" ] || { echo "picotool téléchargé par le SDK"; exit 1; }
+      - name: Compiler le .uf2
+        run: cmake --build "$RUNNER_TEMP/i75w-fw" --parallel
+      # .uf2 reproductible (complément 69) : seconde compilation, autre dossier et autre date
+      # (GCC prend SOURCE_DATE_EPOCH pour __DATE__ : 1er janvier 2000), puis comparaison octet
+      # par octet ; un octet différent fait échouer le job. Date retirée du binaire par
+      # PICO_NO_BI_PROGRAM_BUILD_DATE=1 (CMakeLists.txt) ; témoin vu en échec à l'exécution n° 124.
+      - name: Vérifier que le .uf2 est reproductible (seconde compilation, autre date)
+        env:
+          SOURCE_DATE_EPOCH: "946684800"
+        run: |
+          cmake -S . -B "$RUNNER_TEMP/i75w-fw2" -DCMAKE_BUILD_TYPE=Release \
+            -DPICO_SDK_PATH="$PICO_SDK_PATH" -Dpicotool_DIR="$PICOTOOL_PREFIX/picotool"
+          [ ! -e "$RUNNER_TEMP/i75w-fw2/_deps/picotool-src" ] || { echo "picotool téléchargé par le SDK"; exit 1; }
+          cmake --build "$RUNNER_TEMP/i75w-fw2" --parallel
+          if cmp "$RUNNER_TEMP/i75w-fw/i75w_display.uf2" "$RUNNER_TEMP/i75w-fw2/i75w_display.uf2"; then
+            echo "- \`.uf2\` reproductible : identique à la seconde compilation (autre date)" >> "$GITHUB_STEP_SUMMARY"
+          else
+            echo "- \`.uf2\` NON reproductible : différent à la seconde compilation (autre date)" >> "$GITHUB_STEP_SUMMARY"
+            exit 1
+          fi
+      - name: Empreinte et informations du .uf2
+        run: |
+          OUT="$RUNNER_TEMP/i75w-uf2"
+          mkdir -p "$OUT"
+          cp "$RUNNER_TEMP/i75w-fw/i75w_display.uf2" "$OUT/"
+          (cd "$OUT" && sha256sum i75w_display.uf2 > i75w_display.uf2.sha256 && cat i75w_display.uf2.sha256)
+          "$PICOTOOL_PREFIX/picotool/picotool" info -a "$OUT/i75w_display.uf2"
+          # Licences jointes à l'artefact (complément 79, Q5) : Pico SDK (BSD-3, couvre aussi
+          # src/hub75.pio), TinyUSB (MIT), Pimoroni (MIT, tirée de l'en-tête de src/hub75.hpp).
+          # Une licence absente fait échouer le job. Le .sha256 ne porte que sur le .uf2.
+          mkdir -p "$OUT/licenses"
+          [ -f "$RUNNER_TEMP/pico-sdk/LICENSE.TXT" ] || { echo "::error::licence du Pico SDK absente"; exit 1; }
+          [ -f "$RUNNER_TEMP/pico-sdk/lib/tinyusb/LICENSE" ] || { echo "::error::licence de TinyUSB absente"; exit 1; }
+          [ -f "LICENSES/pimoroni-MIT.txt" ] || { echo "::error::licence de Pimoroni absente"; exit 1; }
+          cp "$RUNNER_TEMP/pico-sdk/LICENSE.TXT" "$OUT/licenses/pico-sdk-LICENSE.TXT"
+          cp "$RUNNER_TEMP/pico-sdk/lib/tinyusb/LICENSE" "$OUT/licenses/tinyusb-LICENSE"
+          cp "LICENSES/pimoroni-MIT.txt" "$OUT/licenses/pimoroni-MIT.txt"
+          ls -l "$OUT/licenses"
+          {
+            echo "### Firmware de l'Interstate 75 W"
+            echo
+            echo "Commit \`$GITHUB_SHA\`, SHA-256 du \`.uf2\` :"
+            echo
+            echo "\`$(cut -d ' ' -f 1 "$OUT/i75w_display.uf2.sha256")\`"
+          } >> "$GITHUB_STEP_SUMMARY"
+      - uses: actions/upload-artifact@v7
+        with:
+          name: i75w_display-uf2-${{ github.sha }}
+          path: ${{ runner.temp }}/i75w-uf2/
+          retention-days: 30
+          if-no-files-found: error
+
+  # Compilation du firmware de la carte Pico par mpy-cross, code viper compris (54e complément).
+  # Bloquant, seul job mpy-cross (le job de shared/ est supprimé, complément 60). Version : MicroPython v1.29.0,
+  # celle du Pico (§ 3.1) ; PyPI ne publie que 1.29.0.post2 (révision de l'emballage), la
+  # version du compilateur est contrôlée. -march=armv7m : valeur de ports/rp2/CMakeLists.txt
+  # de MicroPython v1.29.0 pour PICO_PLATFORM rp2350-arm-s (RP2350 en Arm).
+  mpy-cross-pico:
+    runs-on: ubuntu-24.04
+    defaults:
+      run:
+        working-directory: .
+    steps:
+      - uses: actions/checkout@v7
+      - uses: actions/setup-python@v7
+        with:
+          python-version: "3.13"
+      - name: Installer mpy-cross 1.29.0 (version contrôlée)
+        run: |
+          python -m pip install "mpy-cross==1.29.0.post2"
+          mpy-cross --version | tee "$RUNNER_TEMP/mpy-cross-version.txt"
+          grep -q "MicroPython v1\.29\.0" "$RUNNER_TEMP/mpy-cross-version.txt" \
+            || { echo "::error::mpy-cross n'est pas en v1.29.0"; exit 1; }
+      - name: Compiler firmware/pico_target/ (-march=armv7m)
+        run: |
+          mkdir -p "$RUNNER_TEMP/mpy-pico"
+          for f in firmware/pico_target/*.py; do
+            echo "mpy-cross -march=armv7m $f"
+            mpy-cross -march=armv7m -o "$RUNNER_TEMP/mpy-pico/$(basename "$f" .py).mpy" "$f"
+          done
+      - name: "Témoin : mpy-cross doit refuser le mélange de types viper (ViperTypeError)"
+        run: |
+          set +e
+          mpy-cross -march=armv7m -o "$RUNNER_TEMP/mpy_canary_viper.mpy" tests/mpy_canary_viper.py \
+            > "$RUNNER_TEMP/mpy-canary.txt" 2>&1
+          code=$?
+          set -e
+          cat "$RUNNER_TEMP/mpy-canary.txt"
+          if [ "$code" -eq 0 ]; then
+            echo "::error::le témoin viper a été compilé : le code viper n'est pas vérifié"
+            exit 1
+          fi
+          grep -q "ViperTypeError" "$RUNNER_TEMP/mpy-canary.txt" \
+            || { echo "::error::échec du témoin sans ViperTypeError (code $code)"; exit 1; }
+
+  # actionlint (complément 64) : binaire officiel 1.7.12, empreinte SHA-256 contrôlée, pas de
+  # cache ; shellcheck de l'image du runner. Témoin tests/actionlint_canary.yml (faux exprès) :
+  # code de sortie 1 exactement, « potentially untrusted » et « SC2086 » exigés.
+  # Bloquant depuis le contrôle par l'auteur du job de 4ec8cff (run #118 : témoin passé, seul
+  # signalement SC2015 sur le contrôle de ImageOS, corrigé), comme TSan au 53e complément.
+  # Lancé depuis la racine du dépôt : le workflow est dans .github/workflows/ du dépôt.
+  actionlint:
+    runs-on: ubuntu-24.04
+    env:
+      ACTIONLINT_VERSION: "1.7.12"
+      ACTIONLINT_SHA256: 8aca8db96f1b94770f1b0d72b6dddcb1ebb8123cb3712530b08cc387b349a3d8
+    steps:
+      - uses: actions/checkout@v7
+      - name: Télécharger actionlint 1.7.12 (SHA-256 contrôlé)
+        run: |
+          dir="$RUNNER_TEMP/actionlint"
+          tgz="actionlint_${ACTIONLINT_VERSION}_linux_amd64.tar.gz"
+          mkdir -p "$dir"
+          curl -sSfL -o "$dir/$tgz" \
+            "https://github.com/rhysd/actionlint/releases/download/v${ACTIONLINT_VERSION}/$tgz"
+          echo "$ACTIONLINT_SHA256  $dir/$tgz" | sha256sum -c -
+          tar -xzf "$dir/$tgz" -C "$dir" actionlint
+          ver="$("$dir/actionlint" -version | head -n 1)"
+          echo "actionlint : $ver"
+          if [ "$ver" != "$ACTIONLINT_VERSION" ]; then
+            echo "::error::actionlint annonce « $ver » au lieu de $ACTIONLINT_VERSION"
+            exit 1
+          fi
+          sc="$(shellcheck --version | sed -n 's/^version: //p')"
+          echo "shellcheck : ${sc:-absent}"
+          echo "$dir" >> "$GITHUB_PATH"
+          {
+            echo "### actionlint"
+            echo
+            echo "- actionlint : \`$ver\` (binaire officiel, SHA-256 contrôlé)"
+            echo "- shellcheck : \`${sc:-absent}\` (image du runner)"
+            echo
+          } >> "$GITHUB_STEP_SUMMARY"
+      - name: "Témoin : actionlint doit refuser tests/actionlint_canary.yml (code 1 exactement)"
+        run: |
+          log="$RUNNER_TEMP/actionlint_canary.log"
+          set +e
+          actionlint -no-color tests/actionlint_canary.yml > "$log" 2>&1
+          rc=$?
+          set -e
+          cat "$log"
+          echo "Code de sortie du témoin : $rc"
+          if [ "$rc" -ne 1 ]; then
+            echo "::error::témoin actionlint : code $rc au lieu de 1"
+            exit 1
+          fi
+          grep -q "potentially untrusted" "$log" \
+            || { echo "::error::témoin actionlint : « potentially untrusted » absent"; exit 1; }
+          grep -q "SC2086" "$log" \
+            || { echo "::error::témoin actionlint : « SC2086 » absent, shellcheck inactif ?"; exit 1; }
+          echo "Témoin refusé par actionlint et shellcheck, code 1 : bon"
+      - name: actionlint sur le workflow de RaspyDarts-Pico
+        run: |
+          log="$RUNNER_TEMP/actionlint.log"
+          set +e
+          actionlint -no-color .github/workflows/raspydarts-pico-tests.yml > "$log" 2>&1
+          rc=$?
+          set -e
+          cat "$log"
+          {
+            echo "Sortie de \`actionlint -no-color .github/workflows/raspydarts-pico-tests.yml\` (code $rc) :"
+            echo
+            echo "~~~text"
+            cat "$log"
+            echo "~~~"
+          } >> "$GITHUB_STEP_SUMMARY"
+          exit "$rc"

@@ -1,0 +1,197 @@
+From 88461bf435a2c7e67945f1de9086d6c417f74056 Mon Sep 17 00:00:00 2001
+From: Gohy Yves <6154641+diogeneyves@users.noreply.github.com>
+Date: Wed, 4 Nov 2026 11:29:53 +0100
+Subject: [PATCH] craspberry: add Pico board mode ([SectionAdvanced] hardware =
+ pico)
+MIME-Version: 1.0
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: 8bit
+
+In Pico mode (RaspyDarts-Pico): no call to the Pi GPIOs (old target pins
+and GPIO buttons ignored, no setmode, no reset_gpio, no ctarget_reader);
+buttons, Toys, lights and target through include/cpico.py (PicoExtender,
+PicoTargetSource); cgpio_extender not imported; gpio_flush sends OFF; no
+coin acceptor. Mode read with the cconfig options (UTF-8 with BOM, no
+interpolation); unreadable hardware line or unknown value: warning,
+normal mode.
+Without a configuration file and without Blinka (board module not found):
+Pico mode, with a warning, so that the setup wizard opens (specification
+§ 9.4, v0.3.10); only on a machine that has GPIOs (cplatform.has_gpio,
+RaspyDarts 4.6.5): on a PC, normal mode.
+Normal mode unchanged: only conditional branches are added (pins_usable
+from 4.6.5 kept, combined with the PICO guard).
+---
+ include/craspberry.py | 112 +++++++++++++++++++++++++++++++++++++-----
+ 1 file changed, 100 insertions(+), 12 deletions(-)
+
+diff --git a/include/craspberry.py b/include/craspberry.py
+index 0e2667f..25715d9 100644
+--- a/include/craspberry.py
++++ b/include/craspberry.py
+@@ -19,7 +19,65 @@ if cplatform.has_gpio():
+     from RPi import GPIO as gpio
+ else:
+     from include import cgpio_none as gpio
+-from . import cgpio_extender
++
++
++def read_hardware_mode(path=None, blinka=None):
++    '''
++    Mode carte Pico (RaspyDarts-Pico) : [SectionAdvanced] hardware = pico. Lu dans le fichier
++    lui-même (la clé n'est pas encore connue de cconfig), avec les options de cconfig.py.
++    Renvoie (mode, avertissement) : 'pico' ou 'normal' ; l'avertissement (sinon None) quand une
++    ligne hardware existe mais n'est pas lisible ou a une valeur inconnue : le mode reste normal.
++    Pas de fichier de configuration et Blinka absent (blinka : None = cherché) : mode Pico, avec
++    un avertissement, pour que l'assistant s'ouvre (spécification § 9.4, v0.3.10)
++    '''
++    import configparser
++    import re
++    path = path or cpaths.config_file()
++    if not os.path.isfile(path):
++        if blinka is None:
++            if not cplatform.has_gpio():
++                # Pas de GPIO (un PC, include/cplatform.py) : Blinka n'y est jamais installé,
++                # son absence ne dit rien d'une carte Pico : mode normal, comme sans ce patch
++                return 'normal', None
++            # Blinka (module board, chargé par cgpio_extender) cherché sans être importé
++            import importlib.util
++            try:
++                blinka = 'board' in sys.modules or importlib.util.find_spec('board') is not None
++            except (ImportError, ValueError):
++                blinka = False
++        if not blinka:
++            return 'pico', (f"No configuration file ({path}), Raspberry with GPIO and no Blinka "
++                            f"(no board module) : Pico card mode")
++        return 'normal', None
++    parser = configparser.ConfigParser(inline_comment_prefixes="#", interpolation=None)
++    parser.optionxform = str
++    try:
++        parser.read(path, encoding='utf-8-sig')
++        value = parser.get('SectionAdvanced', 'hardware', fallback=None)
++    except (configparser.Error, UnicodeDecodeError, OSError) as error:
++        try:
++            with open(path, encoding='utf-8-sig', errors='replace') as text:
++                found = any(re.match(r'\s*hardware\s*[:=]', line) for line in text)
++        except OSError:
++            found = False
++        if found:
++            return 'normal', f"[SectionAdvanced] hardware unreadable ({error}) : normal mode"
++        return 'normal', None
++    if value is None:
++        return 'normal', None
++    mode = value.strip().lower()
++    if mode in ('pico', 'normal'):
++        return mode, None
++    return 'normal', f"[SectionAdvanced] hardware = {value.strip()!r} unknown (pico or normal) : normal mode"
++
++
++HARDWARE_MODE, HARDWARE_WARNING = read_hardware_mode()
++PICO = HARDWARE_MODE == 'pico'
++if PICO:
++    # Mode Pico : la carte d'extension n'est pas sur le Pi, Blinka n'est pas chargé
++    cgpio_extender = None
++else:
++    from . import cgpio_extender
+ from . import cusbpads
+ from . import ccoins
+ 
+@@ -161,9 +219,13 @@ class Craspberry():
+         self.config = config
+         self.event = event
+ 
++        if HARDWARE_WARNING:
++            self.logs.warning(HARDWARE_WARNING)
++
+         # Usefull for GPIO usage
+-        gpio.setwarnings(False)
+-        gpio.setmode(gpio.BCM)
++        if not PICO:
++            gpio.setwarnings(False)
++            gpio.setmode(gpio.BCM)
+ 
+         # Leds configuration
+         self.pin_stripled = 0
+@@ -192,6 +254,10 @@ class Craspberry():
+         self.conf_outputs = config.config['Raspberry_BoardPinsOuts']
+         # List of inputs
+         self.conf_inputs = config.config['Raspberry_BoardPinsIns']
++        if PICO:
++            # Mode Pico : la cible n'est pas sur les GPIO du Pi, les anciennes broches sont ignorées
++            self.conf_outputs = {}
++            self.conf_inputs = {}
+ 
+         self.newresolution = []
+         self.banned_gpio = None
+@@ -238,6 +304,9 @@ class Craspberry():
+             for segment in config.config['SectionKeys']:
+                 if config.config['SectionKeys'][segment] == '':
+                     continue
++                if PICO and segment in config.GPIO_BUTTONS_CONFIG:
++                    # Mode Pico : aucun bouton sur les GPIO du Pi
++                    continue
+                 if segment in config.GPIO_BUTTONS_CONFIG:
+                         if not pins_usable:
+                             continue
+@@ -251,14 +320,22 @@ class Craspberry():
+                     self.logs.error(f"Unknown {segment} configuration in [SectionKeys]")
+ 
+             if pins_usable:
+-                # Before reset_gpio : the pins of the target must stay free for the reader
+-                self.start_target_reader()
+-                self.reset_gpio()
+-
+-        from include import ci2c    # pylint: disable=import-outside-toplevel
+-        # The MCP23017 boards are on the I2C bus of the Raspberry : none on another computer
+-        self.gpio = cgpio_extender.Gpio_extender(self.logs, self.buttons,
+-                                                 use_i2c=pins_usable and not ci2c.pins_reserved(config))
++                if not PICO:
++                    # Before reset_gpio : the pins of the target must stay free for the reader
++                    self.start_target_reader()
++                    self.reset_gpio()
++
++        if PICO:
++            # Mode Pico : boutons, Toys, voyants et cible passent par hwd (include/cpico.py)
++            from . import cpico
++            self.pico_link = cpico.shared(self.logs, host=config.get_value('SectionAdvanced', 'mqtt-broker', False) or 'localhost')
++            self.gpio = cpico.PicoExtender(self.logs, self.pico_link, self.buttons)
++            self.target_reader = cpico.PicoTargetSource(self.pico_link, self.target_darts)
++        else:
++            from include import ci2c    # pylint: disable=import-outside-toplevel
++            # The MCP23017 boards are on the I2C bus of the Raspberry : none on another computer
++            self.gpio = cgpio_extender.Gpio_extender(self.logs, self.buttons,
++                                                     use_i2c=pins_usable and not ci2c.pins_reserved(config))
+         # Pads of keys and knobs plugged in USB (Paramètres > Pavés USB)
+         self.usb_pads = cusbpads.shared(self.logs)
+         # Autodarts (its cameras read the darts, Paramètres > Autodarts) : its darts read as those
+@@ -271,7 +348,11 @@ class Craspberry():
+             interior = config.get_value('SectionAdvanced', 'interior', False)
+             self.autodarts.configure(interior=interior is True or str(interior) == 'True')
+         # Coin acceptor (Paramétrage > Monnayeur) ; on_coins : its strip of credits drawn again
+-        self.coins = ccoins.shared(self.logs, self.gpio)
++        if PICO:
++            # Mode Pico : pas de monnayeur (aucune entrée sur la carte)
++            self.coins = cpico.NoCoins()
++        else:
++            self.coins = ccoins.shared(self.logs, self.gpio)
+         self.on_coins = None
+         # LED of the buttons (Paramétrage > LED des boutons) : their states out of games and in
+         # a game, their blinking ; in_game : set by the main loop
+@@ -576,6 +657,10 @@ class Craspberry():
+         """
+         Flush GPIO values
+         """
++        if PICO:
++            # Mode Pico : Toys, voyants et LED éteints par hwd ; aucun GPIO utilisé
++            self.gpio.all_off()
++            return
+         gpio.cleanup()
+ 
+     def test_target(self):
+@@ -1486,4 +1571,7 @@ class Craspberry():
+         """
+         In case of no GPIO
+         """
++        if PICO:
++            from . import cpico
++            return cpico.DEFAULTS
+         return cgpio_extender.DEFAULTS
