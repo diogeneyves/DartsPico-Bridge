@@ -28,7 +28,7 @@ Valeurs à remplacer par les vôtres :
 | `<COPIE-RASPYDARTS>` | Dossier de la copie git de RaspyDarts qui reçoit les patchs |
 | `<SERIE_PICO>` | Numéro de série USB du Pico 2 sous MicroPython (minuscules), relevé à la section 8 ; même marqueur que dans `pi/udev/73-raspydarts-pico.rules` |
 | `<SERIE_I75W>` | Numéro de série USB de l'Interstate 75 W sous le firmware C++ (majuscules), relevé à la section 8 ; même marqueur que dans la règle udev |
-| `<UTILISATEUR>` | Compte du Pi sous lequel tournent les deux services (unités systemd) et qui garde les médias |
+| `<utilisateur>` | Compte du Pi sous lequel tournent les deux services (unités systemd) et qui garde les médias |
 | `<PORT>` | Port série d'une carte (`ttyACM0`, `ttyACM1`…), lu dans `/dev/serial/by-id/` |
 
 ## Plan
@@ -85,7 +85,7 @@ l'auteur est relevé :
   (spécification, journal v0.3.9 ; [`README.md`](../README.md)).
 - **Compte au choix** (complément 77) : les unités systemd portent les marqueurs
   `User=@RASPYDARTS_USER@` et `Group=@RASPYDARTS_GROUP@` (`pi/systemd/*.service`), remplis à
-  l'installation pour `<UTILISATEUR>` et son groupe principal (section 9) ; le dossier des médias par
+  l'installation pour `<utilisateur>` et son groupe principal (section 9) ; le dossier des médias par
   défaut est `~/dmd-medias`, développé pour l'utilisateur du service (`pi/dmd/dmd.example.toml`,
   spécification § 9.9). L'auteur utilise le compte `pi`.
 
@@ -294,15 +294,36 @@ recopiées **avec leur casse**.
 
 ### 8.2 Installer la règle avec vos numéros (*non vérifié*)
 
+udev compare `ATTRS{serial}` octet par octet (spécification § 2, compléments 62 et 77) :
+`<SERIE_PICO>` s'écrit en **minuscules**, `<SERIE_I75W>` en **majuscules**, 16 chiffres
+hexadécimaux chacun, recopiés tels que la section 8.1 les affiche. Une casse fausse ne donne
+aucune erreur dans udev : le lien n'apparaît pas, c'est tout.
+
+Depuis la racine de `<DOSSIER-PROJET>` :
+
 ```bash
 export PICO_SERIAL=<SERIE_PICO> I75W_SERIAL=<SERIE_I75W>
 ```
 
-Puis (les motifs `[<]SERIE_…[>]` visent les marqueurs du fichier ; ne pas les remplacer à la main) :
+Contrôle des deux séries par l'essai à blanc de `tools/install_services.sh` : il ne se connecte
+à rien et n'écrit rien ; une série de mauvaise casse ou de mauvais format est refusée (message
+sur la sortie d'erreur, code 64) :
+
+```bash
+tools/install_services.sh --user <utilisateur> --pico-serial "$PICO_SERIAL" --i75w-serial "$I75W_SERIAL"
+```
+
+Attendu : `Essai à blanc terminé : rien n'a été envoyé au Pi.` La ligne `Hôte` ne sert qu'à
+`--apply`, qui installe par SSH depuis un Mac (**[À ADAPTER]**, section 9) ; sur le Pi, la
+règle s'installe à la main (les motifs `[<]SERIE_…[>]` visent les marqueurs du fichier ; ne pas
+les remplacer à la main) :
 
 ```bash
 sed -e "s/[<]SERIE_PICO[>]/$PICO_SERIAL/" -e "s/[<]SERIE_I75W[>]/$I75W_SERIAL/" pi/udev/73-raspydarts-pico.rules | sudo tee /etc/udev/rules.d/73-raspydarts-pico.rules
 ```
+
+`install_services.sh --apply` fait le `reload`, jamais le `trigger` ([`PROCEDURE.md`](PROCEDURE.md)
+§ 2.6) ; ici, les deux :
 
 ```bash
 sudo udevadm control --reload && sudo udevadm trigger --subsystem-match=tty --action=add
@@ -314,15 +335,16 @@ Contrôle (attendu : `/dev/cible -> ttyACM…` et `/dev/dmd -> ttyACM…`) :
 ls -l /dev/cible /dev/dmd
 ```
 
-Carte ou firmware changé : le lien disparaît et `hwd` voit la carte absente ; relever de nouveau le
-numéro de série (section 8.1) et refaire la section 8.2.
+Rien n'est activé ni démarré : services à la section 9. Carte ou firmware changé : le lien
+disparaît et `hwd` voit la carte absente ; relever de nouveau le numéro de série (section 8.1)
+et refaire la section 8.2.
 
 ## 9. Services `hwd` et rendu du DMD
 
 Spécification § 9.5 et § 9.9 (50e complément) ; [`PROCEDURE.md`](PROCEDURE.md) § 2.
 
 **[À ADAPTER]** `tools/install_services.sh --apply` se lance depuis un Mac et installe par SSH, avec
-trois options obligatoires : `--user <UTILISATEUR>`, `--pico-serial <SERIE_PICO>` (minuscules) et
+trois options obligatoires : `--user <utilisateur>`, `--pico-serial <SERIE_PICO>` (minuscules) et
 `--i75w-serial <SERIE_I75W>` (majuscules). Ce qu'il fait sur le Pi, avec `sudo` :
 
 - copie des fichiers de `pi/hwd`, `pi/dmd` et `shared` dans `/opt/raspydarts-pico/` (même structure que
@@ -347,7 +369,7 @@ sudo chown -R root:root /opt/raspydarts-pico && sudo find /opt/raspydarts-pico -
 ```
 
 ```bash
-d="$(mktemp -d)" && cp pi/systemd/raspydarts-hwd.service pi/systemd/raspydarts-dmd.service "$d"/ && sh pi/systemd/fill_units.sh "$d" <UTILISATEUR> && sudo install -m 644 "$d"/raspydarts-hwd.service "$d"/raspydarts-dmd.service /etc/systemd/system/
+d="$(mktemp -d)" && cp pi/systemd/raspydarts-hwd.service pi/systemd/raspydarts-dmd.service "$d"/ && sh pi/systemd/fill_units.sh "$d" <utilisateur> && sudo install -m 644 "$d"/raspydarts-hwd.service "$d"/raspydarts-dmd.service /etc/systemd/system/
 ```
 
 ```bash
@@ -392,7 +414,7 @@ Spécification § 9.3 et § 9.9 (41e, 42e, 48e et 49e compléments) ; code : `pi
 
 Les médias ne sont **pas fournis** par ce dépôt : chacun fournit les siens. Ils se placent dans le dossier
 de la clé `dmd_media_dir` de `/etc/raspydarts/dmd.toml` (défaut `~/dmd-medias`, `~` développé pour
-`<UTILISATEUR>`, complément 77), lisible par ce compte ; l'auteur les garde en dossiers 755 et fichiers 644. **Jamais dans `/Raspy2DMD`** : le jeu
+`<utilisateur>`, complément 77), lisible par ce compte ; l'auteur les garde en dossiers 755 et fichiers 644. **Jamais dans `/Raspy2DMD`** : le jeu
 réagit à ce dossier (§ 6.6).
 
 | Dossier | Contenu | Formats |
