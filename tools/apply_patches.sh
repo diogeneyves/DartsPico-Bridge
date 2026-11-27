@@ -18,7 +18,7 @@
 # (cpico.py, hwbus.py, pico_proto.py, rpi_ws281x.py) et bandeau en tête du README.md (complément 83).
 #
 # Codes de sortie : 0 succès, 1 usage, 2 HEAD différent de BASE (--check : BASE absent), 3 copie modifiée,
-# 4 copie de référence refusée, 5 patch qui ne s'applique pas.
+# 4 copie de référence refusée, 5 patch qui ne s'applique pas, 6 modèle du bandeau ou README.md absent.
 
 set -eu
 
@@ -56,6 +56,14 @@ done
 if [ "$CHECK" -eq 0 ] && [ -n "$ORIG_REAL" ] && [ "$TARGET" = "$ORIG_REAL" ]; then
     echo "Refusé : $TARGET est la copie de référence, jamais modifiée (utiliser --check ou une autre copie)." >&2
     exit 4
+fi
+
+# Bandeau du README du fork (complément 83), lu dans pi/patches/ du dépôt (pas dans --patches).
+# Vérifié avant toute modification ; inutile avec --check, qui s'arrête avant le 11e commit.
+BANNER="$ROOT/pi/patches/FORK_README_BANNER.md"
+if [ "$CHECK" -eq 0 ]; then
+    [ -f "$BANNER" ] || { echo "Modèle du bandeau absent : $BANNER (rien n'est modifié)." >&2; exit 6; }
+    [ -f "$TARGET/README.md" ] || { echo "README.md absent de $TARGET (rien n'est modifié)." >&2; exit 6; }
 fi
 
 HEAD=$(git -C "$TARGET" rev-parse HEAD)
@@ -112,11 +120,7 @@ cp "$ROOT/pi/hwd/hwbus.py" "$TARGET/include/hwbus.py"
 cp "$ROOT/shared/pico_proto.py" "$TARGET/include/pico_proto.py"
 mkdir -p "$TARGET/pico_shims"
 cp "$ROOT/pi/raspydarts_layer/shims/rpi_ws281x.py" "$TARGET/pico_shims/rpi_ws281x.py"
-# Bandeau du README du fork (complément 83), lu dans pi/patches/ du dépôt (pas dans --patches) :
-# ajouté en tête, le texte de l'amont reste intact en dessous.
-BANNER="$ROOT/pi/patches/FORK_README_BANNER.md"
-[ -f "$BANNER" ] && [ -f "$TARGET/README.md" ] || {
-    echo "Bandeau $BANNER ou README.md de $TARGET absent." >&2; exit 5; }
+# Bandeau ajouté en tête du README.md, le texte de l'amont reste intact en dessous.
 cat "$BANNER" "$TARGET/README.md" > "$TARGET/README.md.tmp"
 mv "$TARGET/README.md.tmp" "$TARGET/README.md"
 git -C "$TARGET" add include/cpico.py include/hwbus.py include/pico_proto.py pico_shims/rpi_ws281x.py README.md

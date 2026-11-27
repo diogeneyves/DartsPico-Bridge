@@ -118,6 +118,34 @@ class Files(unittest.TestCase):
                           "%r : la ligne d'avant n'est pas une condition (%r)" % (r, before))
 
 
+class MissingBanner(unittest.TestCase):
+    """Modèle du bandeau absent (complément 83) : refus, code 6, avant toute modification.
+    Sans copie de RaspyDarts : le script est copié dans un faux dépôt sans le modèle."""
+
+    def setUp(self):
+        self.tmp = tempfile.mkdtemp()
+        self.addCleanup(shutil.rmtree, self.tmp)
+        root = os.path.join(self.tmp, "projet")
+        os.makedirs(os.path.join(root, "tools"))
+        os.makedirs(os.path.join(root, "pi", "patches"))
+        shutil.copy(SCRIPT, os.path.join(root, "tools"))
+        for name in ("BASE", "series"):
+            shutil.copy(os.path.join(PATCHES, name), os.path.join(root, "pi", "patches"))
+        self.script = os.path.join(root, "tools", "apply_patches.sh")
+        self.copy = os.path.join(self.tmp, "copie")
+        os.makedirs(self.copy)
+        with open(os.path.join(self.copy, "README.md"), "w") as f:
+            f.write("amont\n")
+
+    def test_missing_banner_refused_with_code_6(self):
+        env = dict(os.environ, RASPYDARTS_ORIG=os.path.join(self.tmp, "absent"))
+        out = subprocess.run([self.script, self.copy], capture_output=True, text=True, env=env)
+        self.assertEqual(out.returncode, 6, out.stdout + out.stderr)
+        self.assertIn("Modèle du bandeau absent", out.stderr)
+        self.assertIn("FORK_README_BANNER.md", out.stderr)
+        self.assertEqual(os.listdir(self.copy), ["README.md"])     # rien n'est modifié
+
+
 @unittest.skipUnless(_orig.available(), "copie de RaspyDarts absente (%s)" % _orig.ORIG)
 class Script(unittest.TestCase):
     def setUp(self):

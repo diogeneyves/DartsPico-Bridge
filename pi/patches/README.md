@@ -34,7 +34,8 @@ tools/apply_patches.sh ~/RaspyDarts-work
   - `HEAD` différent de `BASE` ; avec `--check`, `BASE` absent de la copie (code 2) ;
   - copie qui contient des modifications (code 3) ;
   - copie de référence (`RASPYDARTS_ORIG`), ou `~/RaspyDarts-ref465`, `~/RaspyDarts-ref`, `~/RaspyDarts-orig` (code 4) ;
-  - patch qui ne s'applique pas (code 5).
+  - patch qui ne s'applique pas (code 5) ;
+  - sans `--check`, modèle `FORK_README_BANNER.md` absent du dépôt, ou `README.md` absent de la copie (code 6).
 
 ## Produire un patch
 
