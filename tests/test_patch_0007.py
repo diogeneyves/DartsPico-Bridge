@@ -10,8 +10,10 @@ carte Pico ([SectionAdvanced] hardware = pico) :
   démarrage, une ligne de journal ;
 - cscreen.py : le bouton affiche « Mise à jour désactivée en mode carte Pico » (clé
   pico-update-disabled, texte français par défaut) et revient au menu, sans cupdate ;
-- cdmdmenu.py : boutons Raspy2DMD install, start, update et uninstall masqués ; le reste du
-  menu ne change pas, et la sélection reste en place quand aucune commande ne reste.
+- cdmdmenu.py : boutons Raspy2DMD install, start, update et uninstall masqués, et la sélection
+  reste en place quand aucune commande ne reste ; masqués aussi (complément 89) le texte
+  raspy2dmd-remote-unknown et la note de version (version_note : écran principal et sous-menu
+  « Affichage du score ») ; l'en-tête raspy2dmd-remote et le reste du menu ne changent pas.
 En mode normal, mêmes résultats que l'original (copie de référence, lecture seule).
 Aucun accès réseau : cupdate est remplacé par un enregistreur. Sautés si la copie de
 référence est absente.
@@ -35,6 +37,9 @@ STARTUP = ("# An update downloaded in the background (Mise à jour prête : Dema
            "##############\n# INIT\n##############\n")
 DISABLED = "Mise à jour désactivée en mode carte Pico"
 HIDDEN = ("raspy2dmd-install-here", "raspy2dmd-start", "raspy2dmd-check-update", "raspy2dmd-uninstall")
+# Complément 89 : textes masqués en mode Pico (clés, rendues telles quelles par la fausse traduction)
+REMOTE_UNKNOWN = "raspy2dmd-remote-unknown"
+VERSION_NOTES = ("dmd-version-needed", "dmd-version-old", "dmd-version-needed-1624", "dmd-version-old-1624")
 
 
 class Stop(Exception):
@@ -121,6 +126,11 @@ class FakeDisplay:
 
 @unittest.skipUnless(_orig.available(), "copie de RaspyDarts absente (%s)" % _orig.ORIG)
 class Patch0007(unittest.TestCase):
+    # Réponses de la fausse cdmdscore : styles connus (True, False ou None) et adresse distante
+    known = True
+    address = None
+    paragraphs = None
+
     @classmethod
     def setUpClass(cls):
         assert _orig.status() == ""
@@ -345,8 +355,18 @@ class Patch0007(unittest.TestCase):
         include = types.ModuleType("include")
         include.__path__ = []
         cdmdscore = types.SimpleNamespace(local=lambda: self.here, general=lambda: {},
-                                          remote_address=lambda: None, styles_known=lambda: True)
-        cmenueditor = types.SimpleNamespace(paragraph=lambda *a, **k: None,
+                                          remote_address=lambda: self.address,
+                                          styles_known=lambda: self.known,
+                                          style_known=lambda style: self.known,
+                                          NEEDS={"modern": (1, 6, 2, 3), "duck": (1, 6, 2, 3),
+                                                 "ring": (1, 6, 2, 4)},
+                                          NEEDED=(1, 6, 2, 3), local_version=lambda: "1.6.2.2")
+
+        def paragraph(screen, text, *a, **k):
+            if self.paragraphs is not None:
+                self.paragraphs.append(text)
+
+        cmenueditor = types.SimpleNamespace(paragraph=paragraph,
                                             value_item=lambda screen, rect, text, value, chosen: None)
         cscreen = types.SimpleNamespace(DOWN_KEYS=["down"], ENTER_KEYS=["enter"],
                                         ESCAPE_KEYS=["escape"], UP_KEYS=["up"])
@@ -431,6 +451,71 @@ class Patch0007(unittest.TestCase):
         # d'ici : il est supposé en marche sur un autre Raspberry, ses commandes de test restent
         turns = self.dmd_commands("patched", True, True, False, keys=("right", "left", "escape"))
         self.assertEqual(turns, [["dmd-score-by-game"]] * 3)
+
+    # --- cdmdmenu.py : textes masqués en mode Pico (complément 89) -------------------------------
+
+    def dmd_paragraphs(self, which, pico, here, known, address=None, running=True):
+        """Les paragraphes dessinés au premier tour de raspy2dmd_menu."""
+        self.known, self.address, self.paragraphs = known, address, []
+        try:
+            self.dmd_commands(which, pico, here, running)
+            return self.paragraphs
+        finally:
+            self.known, self.address, self.paragraphs = True, None, None
+
+    def test_dmd_pico_mode_hides_remote_texts(self):
+        # Raspy2DMD absent d'ici, aucune adresse distante (cas de la carte Pico)
+        for known in (None, False, True):
+            with self.subTest(known=known):
+                shown = self.dmd_paragraphs("patched", True, False, known)
+                self.assertNotIn(REMOTE_UNKNOWN, shown)
+                self.assertFalse(set(shown) & set(VERSION_NOTES), shown)
+
+    def test_dmd_normal_mode_shows_remote_texts(self):
+        # Garde-fou du test : en mode normal, les deux textes sont bien dessinés
+        shown = self.dmd_paragraphs("patched", False, False, None)
+        self.assertIn(REMOTE_UNKNOWN, shown)
+        self.assertIn("dmd-version-needed", shown)
+
+    def test_dmd_paragraphs_normal_mode_identical_to_original(self):
+        for here in (False, True):
+            for known in (None, False, True):
+                for address in (None, "192.168.1.50"):
+                    for pico in (None, False):
+                        with self.subTest(here=here, known=known, address=address, pico=pico):
+                            self.assertEqual(
+                                self.dmd_paragraphs("patched", pico, here, known, address),
+                                self.dmd_paragraphs("original", None, here, known, address))
+
+    def test_version_note_pico_mode_none(self):
+        # Écran principal (style None) et sous-menu « Affichage du score » (style choisi)
+        self.here = False
+        for which in ("patched", "original"):
+            for known in (None, False):
+                self.known = known
+                module, saved = self.load_dmdmenu(which)
+                try:
+                    for style in (None, "modern", "ring"):
+                        with self.subTest(which=which, known=known, style=style):
+                            pico = types.SimpleNamespace(pico_mode=lambda: True,
+                                                         lang=types.SimpleNamespace(translate=lambda k: k))
+                            normal = types.SimpleNamespace(pico_mode=lambda: False, lang=pico.lang)
+                            bare = types.SimpleNamespace(lang=pico.lang)
+                            expected = module.version_note(bare, style)
+                            self.assertIn(expected.split(" ")[0], VERSION_NOTES)
+                            self.assertEqual(module.version_note(normal, style), expected)
+                            if which == "patched":
+                                self.assertIsNone(module.version_note(pico, style))
+                finally:
+                    self.known = True
+                    sys.modules.clear()
+                    sys.modules.update(saved)
+
+    def test_score_submenu_uses_version_note(self):
+        # Le sous-menu « Affichage du score » n'a pas de note à lui : seulement version_note
+        source = read(self.dmdmenu["patched"])
+        self.assertEqual(source.count("dmd-version-"), 4)
+        self.assertEqual(source.count("note = version_note(screen"), 2)
 
     def test_pico_commands(self):
         self.here = False

@@ -1,4 +1,4 @@
-From 165980df11d1ef318ce3f579e2805029d4c1fd18 Mon Sep 17 00:00:00 2001
+From 50106c0b5271807c8767cb7a3c44d19accde60cb Mon Sep 17 00:00:00 2001
 From: Gohy Yves <6154641+diogeneyves@users.noreply.github.com>
 Date: Sun, 22 Nov 2026 08:03:20 +0100
 Subject: [PATCH] Updates: disable them in Pico board mode
@@ -13,34 +13,43 @@ In Pico board mode ([SectionAdvanced] hardware = pico):
 - raspydarts.py: at start-up, no pending install (backup/update_pending.json),
   no check (check_for_updates), one log line;
 - cdmdmenu.py: Raspy2DMD install, start, update and uninstall buttons hidden;
-  selection kept when no command is left.
+  selection kept when no command is left; the raspy2dmd-remote-unknown text
+  and the version note (version_note: main screen and score sub-menu) hidden.
 In normal mode, behaviour identical to the original.
 ---
- include/cdmdmenu.py | 21 ++++++++++++++++++++-
+ include/cdmdmenu.py | 35 +++++++++++++++++++++++++++++++++--
  include/cscreen.py  |  9 +++++++++
  raspydarts.py       | 14 ++++++++++++--
- 3 files changed, 41 insertions(+), 3 deletions(-)
+ 3 files changed, 54 insertions(+), 4 deletions(-)
 
 diff --git a/include/cdmdmenu.py b/include/cdmdmenu.py
-index 3f372b5..79eaf43 100644
+index 3f372b5..553d91d 100644
 --- a/include/cdmdmenu.py
 +++ b/include/cdmdmenu.py
-@@ -24,6 +24,22 @@ def translate(screen, key):
+@@ -24,6 +24,30 @@ def translate(screen, key):
      return screen.lang.translate(key)
  
  
 +# Mode carte Pico (DartsPico-Bridge, patch 0007) : l'Interstate 75 W remplace Raspy2DMD ; ses
 +# boutons d'installation (script téléchargé et lancé en root), de démarrage, de mise à jour et
-+# de suppression sont masqués. Le reste du menu ne change pas
++# de suppression sont masqués, comme (complément 89) le texte « Raspy2DMD n'est pas installé sur
++# la borne… » et la note de version (version_note). Le reste du menu ne change pas
 +PICO_HIDDEN_COMMANDS = ('install', 'start', 'update', 'uninstall')
++
++
++def pico_mode(screen):
++    '''
++    Vrai en mode carte Pico ; faux en mode normal ou si l'écran ne connaît pas ce mode
++    '''
++    mode = getattr(screen, 'pico_mode', None)
++    return mode is not None and bool(mode())
 +
 +
 +def pico_commands(screen, commands):
 +    '''
 +    Les commandes du menu : sans celles de PICO_HIDDEN_COMMANDS en mode carte Pico
 +    '''
-+    pico_mode = getattr(screen, 'pico_mode', None)
-+    if pico_mode is None or not pico_mode():
++    if not pico_mode(screen):
 +        return commands
 +    return [command for command in commands if command[0] not in PICO_HIDDEN_COMMANDS]
 +
@@ -48,7 +57,17 @@ index 3f372b5..79eaf43 100644
  def style_label(screen, value):
      return translate(screen, f'dmd-style-{value}')
  
-@@ -149,6 +165,7 @@ def raspy2dmd_menu(screen, dispatcher):
+@@ -98,6 +122,9 @@ def version_note(screen, style=None):
+     What the styles need, when the Raspy2DMD is too old or not known (another Raspberry) : the
+     styles of 1.6.2.3 (Moderne, Chasse aux canards), those of 1.6.2.4 (the others)
+     '''
++    # Mode carte Pico : aucune note, tous les styles sont rendus en Classique (complément 89)
++    if pico_mode(screen):
++        return None
+     newer = style is not None and cdmdscore.NEEDS.get(style, (0,)) > cdmdscore.NEEDED
+     known = cdmdscore.style_known(style) if newer else cdmdscore.styles_known()
+     if known is True:
+@@ -149,6 +176,7 @@ def raspy2dmd_menu(screen, dispatcher):
                  commands.append(('uninstall', 'raspy2dmd-uninstall'))
          else:
              commands.append(('install', 'raspy2dmd-install-here'))
@@ -56,7 +75,17 @@ index 3f372b5..79eaf43 100644
          # In the order of reading : the settings, the commands, Retour
          entries = [('setting',) + item for item in settings] + [('command',) + item + (None,) for item in commands] + [('back', 'back', 'back', None)]
          selected = max(0, min(selected, len(entries) - 1))
-@@ -234,7 +251,9 @@ def raspy2dmd_menu(screen, dispatcher):
+@@ -173,7 +201,8 @@ def raspy2dmd_menu(screen, dispatcher):
+             for url in urls:
+                 screen.blit_text(url, left.x, text_y, left.width, line, screen.colorset['menu-text-white'])
+                 text_y += line
+-        else:
++        elif not pico_mode(screen):
++            # Mode carte Pico : ce texte est masqué, rien à sa place (complément 89)
+             cmenueditor.paragraph(screen, translate(screen, 'raspy2dmd-remote-unknown'),
+                                   pygame.Rect(left.x, text_y, left.width, int(3 * unit_y)), screen.colorset['menu-text-white'])
+             text_y += int(3 * unit_y)
+@@ -234,7 +263,9 @@ def raspy2dmd_menu(screen, dispatcher):
          elif key in ('left', 'right', 'S11', 'S6'):
              if kind in ('setting', 'command'):
                  other = [index for index, entry in enumerate(entries) if entry[0] == ('command' if kind == 'setting' else 'setting')]

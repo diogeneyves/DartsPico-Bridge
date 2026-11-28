@@ -1,4 +1,4 @@
-From e2c7353aeae10e760dc4cb836dcc31b8d7277734 Mon Sep 17 00:00:00 2001
+From 6914c0beaf82030aace39352a5ae45115c9dea19 Mon Sep 17 00:00:00 2001
 From: Gohy Yves <6154641+diogeneyves@users.noreply.github.com>
 Date: Thu, 26 Nov 2026 11:18:40 +0100
 Subject: [PATCH] Gallery: make read-only without a password, check origin on

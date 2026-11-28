@@ -1,4 +1,4 @@
-From 8420065625a9440ab0954252d14c925eb4abd77f Mon Sep 17 00:00:00 2001
+From aa349dd8016552d4761a40069699623e68833b93 Mon Sep 17 00:00:00 2001
 From: Gohy Yves <6154641+diogeneyves@users.noreply.github.com>
 Date: Sun, 22 Nov 2026 10:55:31 +0100
 Subject: [PATCH] System settings: skip them in Pico board mode
